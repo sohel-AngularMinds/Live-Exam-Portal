@@ -6,7 +6,7 @@ const EditQuestion = () => {
             <div className="card">
                 <div className="card-header text-uppercase d-flex justify-content-between">
                     <h4 className="card-title mt-3">Edit Question</h4>
-                    <h4 className="mt-3">
+                    <h4 className="mt-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Full Screen">
                         <i className='bx bx-fullscreen bx-burst' ></i>
                         <i className='bx bx-fullscreen'></i>
                     </h4>
@@ -18,7 +18,7 @@ const EditQuestion = () => {
                                 <label className="form-label">Select Subject</label>
                                 <select className="form-select disable">
                                     {/* <option selected>Open this select menu</option> */}
-                                    <option className=" text-muted" disabled selected>type to search Subject</option>
+                                    <option className=" text-muted" disabled>type to search Subject</option>
                                     <option value="1">One</option>
                                     <option value="2">Two</option>
                                     <option value="3">Three</option>
@@ -28,7 +28,7 @@ const EditQuestion = () => {
                             <div className="col-6 mb-3">
                                 <label className="form-label">Select Topic</label>
                                 <select className="form-select">
-                                    <option className="disable text-muted" disabled selected>type to search Topic</option>
+                                    <option className="disable text-muted" disabled >type to search Topic</option>
                                     <option value="1">One</option>
                                     <option value="2">Two</option>
                                     <option value="3">Three</option>
@@ -59,21 +59,21 @@ const EditQuestion = () => {
                             </div>
                             <div className="col-3 mb-3">
                                 <label className="form-label">Right Mark</label>
-                                <input type="text" class="form-control" ></input>
+                                <input type="text" className="form-control" ></input>
                             </div>
                             <div className="col-3 mb-3">
                                 <label className="form-label">Wrong Mark</label>
-                                <input type="text" class="form-control" ></input>
+                                <input type="text" className="form-control" ></input>
                             </div>
                         </div>
 
                         <div className="row">
                             <div className="col-12 mb-3">
                                 <label className="form-label">Question</label>
-                                <div class="form-floating">
-                                    <textarea className="form-control" placeholder="Question" id="Que" style={{ height: "100px" }}></textarea>
-                                    <label className="form-label text-dark" for="Que">Question</label>
-                                    <div id="textareaHelp1" class="form-text">Enable Rich Text Editor</div>
+                                <div className="form-floating point">
+                                    <textarea className="form-control" placeholder="Question" style={{ height: "100px" }}></textarea>
+                                    <label className="form-label text-dark" >Question</label>
+                                    <div className="form-text">Enable Rich Text Editor</div>
                                 </div>
                             </div>
                         </div>
@@ -82,8 +82,8 @@ const EditQuestion = () => {
                         <div className="row">
                             <label className="form-label">Options</label>
                             <div className="col-12 mb-3">
-                                <div class="input-group ">
-                                    <span class="input-group-text align-baseline gap-2">
+                                <div className="input-group ">
+                                    <span className="input-group-text align-baseline gap-2">
                                         <span className="">
                                             <input className="form-check-input" type="checkbox" />
                                         </span>
@@ -91,19 +91,19 @@ const EditQuestion = () => {
                                             <h6>Option 1</h6>
                                         </span>
                                     </span>
-                                    <textarea class="form-control" aria-label="With textarea"></textarea>
+                                    <textarea className="form-control" aria-label="With textarea"></textarea>
                                 </div>
 
-                                <div id="textareaHelp2">
-                                    <span class="form-text">Remove Option</span>
-                                    <span class="form-text"> | </span>
-                                    <span class="form-text">Enable Rich Text Editor</span>
+                                <div  className="point">
+                                    <span className="form-text">Remove Option</span>
+                                    <span className="form-text"> | </span>
+                                    <span className="form-text">Enable Rich Text Editor</span>
                                 </div>
                             </div>
 
                             <div className="col-12 mb-3">
-                                <div class="input-group ">
-                                    <span class="input-group-text align-baseline gap-2">
+                                <div className="input-group ">
+                                    <span className="input-group-text align-baseline gap-2">
                                         <span className="">
                                             <input className="form-check-input" type="checkbox" />
                                         </span>
@@ -111,19 +111,19 @@ const EditQuestion = () => {
                                             <h6>Option 2</h6>
                                         </span>
                                     </span>
-                                    <textarea class="form-control" aria-label="With textarea"></textarea>
+                                    <textarea className="form-control" aria-label="With textarea"></textarea>
                                 </div>
 
-                                <div id="textareaHelp2">
-                                    <span class="form-text">Remove Option</span>
-                                    <span class="form-text"> | </span>
-                                    <span class="form-text">Enable Rich Text Editor</span>
+                                <div  className="point">
+                                    <span className="form-text">Remove Option</span>
+                                    <span className="form-text"> | </span>
+                                    <span className="form-text">Enable Rich Text Editor</span>
                                 </div>
                             </div>
 
                             <div className="col-12 mb-3">
-                                <div class="input-group ">
-                                    <span class="input-group-text align-baseline gap-2">
+                                <div className="input-group ">
+                                    <span className="input-group-text align-baseline gap-2">
                                         <span className="">
                                             <input className="form-check-input" type="checkbox" />
                                         </span>
@@ -131,19 +131,19 @@ const EditQuestion = () => {
                                             <h6>Option 3</h6>
                                         </span>
                                     </span>
-                                    <textarea class="form-control" aria-label="With textarea"></textarea>
+                                    <textarea className="form-control" aria-label="With textarea"></textarea>
                                 </div>
 
-                                <div id="textareaHelp2">
-                                    <span class="form-text">Remove Option</span>
-                                    <span class="form-text"> | </span>
-                                    <span class="form-text">Enable Rich Text Editor</span>
+                                <div className="point">
+                                    <span className="form-text">Remove Option</span>
+                                    <span className="form-text"> | </span>
+                                    <span className="form-text">Enable Rich Text Editor</span>
                                 </div>
                             </div>
 
                             <div className="col-12 mb-3">
-                                <div class="input-group ">
-                                    <span class="input-group-text align-baseline gap-2">
+                                <div className="input-group ">
+                                    <span className="input-group-text align-baseline gap-2">
                                         <span className="">
                                             <input className="form-check-input" type="checkbox" />
                                         </span>
@@ -151,19 +151,19 @@ const EditQuestion = () => {
                                             <h6>Option 4</h6>
                                         </span>
                                     </span>
-                                    <textarea class="form-control" aria-label="With textarea"></textarea>
+                                    <textarea className="form-control" aria-label="With textarea"></textarea>
                                 </div>
 
-                                <div id="textareaHelp2">
-                                    <span class="form-text"> Remove Option</span>
-                                    <span class="form-text"> | </span>
-                                    <span class="form-text"> nable Rich Text Editor</span>
+                                <div className="point">
+                                    <span className="form-text"> Remove Option</span>
+                                    <span className="form-text"> | </span>
+                                    <span className="form-text"> Enable Rich Text Editor</span>
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <button type="button" class="btn text-primary"> + Add Option </button>
+                            <button type="button" className="btn text-primary"> + Add Option </button>
                         </div>
                     </form>
                 </div>

@@ -14,9 +14,16 @@ const Questions = () => {
                 <div className="card-body">
                     <QuestionMenu />
                     
-                    <hr className="dropdown-divider"></hr>
-
-                    
+                    <hr className="dropdown-divider"/>
+                    <PerQuestion />
+                    <hr className="dropdown-divider" />
+                    <PerQuestion />
+                    <hr className="dropdown-divider" />
+                    <PerQuestion />
+                    <hr className="dropdown-divider" />
+                    <PerQuestion />
+                    <hr className="dropdown-divider" />
+                    <PerQuestion />
                 </div>
             </div>
         </div>

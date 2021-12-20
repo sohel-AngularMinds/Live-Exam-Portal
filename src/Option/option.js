@@ -15,7 +15,7 @@ const option = () => {
                 <textarea class="form-control" aria-label="With textarea"></textarea>
             </div>
 
-            <div id="textareaHelp2">
+            <div className="point">
                 <span class="form-text">Remove Option</span>
                 <span class="form-text"> | </span>
                 <span class="form-text">Enable Rich Text Editor</span>

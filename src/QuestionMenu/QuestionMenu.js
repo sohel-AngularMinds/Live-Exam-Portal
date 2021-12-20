@@ -21,16 +21,20 @@ const QuestionMenu = () => {
                     </span>
                 </li>
                 <li className="nav-item text-center">
-                    <form className="d-flex nav-link text-secondary">
-                        <input className="form-control me-2" type="search" placeholder="Search Question" aria-label="Search" />
-                        <select className="form-select">
-                            {/* <option selected>Open this select menu</option> */}
-                            <option value="1">One</option>
-                            <option value="2">Two</option>
-                            <option value="3">Three</option>
-                        </select>
-                    </form>
+                    <form className="d-inline-flex nav-link text-secondary">
+                        <div className="me-2">
+                            <input className="form-control me-2" type="search" placeholder="Search Question " />
+                        </div>
 
+                        <div>
+                            <select className="form-select">
+                                {/* <option selected>Open this select menu</option> */}
+                                <option value="1">OneQWERY</option>
+                                <option value="2">Twoaaaa</option>
+                                <option value="3">Three</option>
+                            </select>
+                        </div>
+                    </form>
                 </li>
             </ul>
         </div>

@@ -1,8 +1,10 @@
 import React from 'react'
 
-const Navbar = () => {
+const Navbar = (props) => {
+    const showStatus = props.showStatus;
+    
     return (
-        <div className="container-fluid navbar-dark bg-dark">
+        <div className={`container-fluid navbar-dark bg-dark ${showStatus?'hide':'show'}`}>
             <nav className="navbar navbar-expand-lg text-uppercase">
                 <div className="container">
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
