@@ -1,8 +1,9 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Navbar = (props) => {
     const showStatus = props.showStatus;
-    
+    let navigate = useNavigate();
     return (
         <div className={`container-fluid navbar-dark bg-dark ${showStatus?'hide':'show'}`}>
             <nav className="navbar navbar-expand-lg text-uppercase">
@@ -13,7 +14,11 @@ const Navbar = (props) => {
                     <div className="collapse navbar-collapse" id="navbarNavDropdown">
                         <ul className="navbar-nav">
                             <li className="nav-item">
-                                <span className="nav-link active">Questions</span>
+                                <span className="nav-link active"
+                                    onClick={() => {
+                                        navigate('/questions/default');
+                                }}
+                                >Questions</span>
                             </li>
                             <li className="nav-item">
                                 <span className="nav-link">Subjects</span>
