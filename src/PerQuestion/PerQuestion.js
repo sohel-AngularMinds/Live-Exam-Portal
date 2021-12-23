@@ -1,8 +1,10 @@
 import React from 'react'
 
 
+
 //--- htmlFor option edit delete
-export const option = () => {
+const operation = () => {
+
     return (
         <div className="d-inline-flex gap-2 py-2 point">
             <div className="align-middle ">
@@ -17,82 +19,47 @@ export const option = () => {
     )
 }
 
+const PerQuestion = (props) => {
+    const { type, options, questionText } = props.data;
+
+    const setOptions = (type, options) => {
+        let inputType = type === "MULTIPLE RESPONSE" ? 'checkbox' : 'radio'
+        let t = options.map(({ option, isCorrect, _id }, index) => {
+
+            return (
+                <React.Fragment key={_id}>
+                    <div className="form-check">
+                        <input className="form-check-input"
+                            type={inputType}
+                            name={inputType === 'radio' ? 'rdo' : `check${index}`}
+                            value={isCorrect}
+                            checked={isCorrect}
+                            disabled={true}
+                        />
+                        <label className="form-check-label text-muted">
+                            {option}
+                        </label>
+                    </div>
+                </React.Fragment>
+            )
+        })
+        return t;
+    }
 
 
-
-
-
-const PerQuestion = () => {
     return (
         <div className="container">
             <form >
                 <div>
-                    <label className='text-dark'>Question Text</label>
+                    <hr />
+                    <div>
+                        <input className="form-check-input" type="checkbox"  id="flexCheckDefault1" />
+                        <label className='text-dark ms-2' >{questionText}</label>
+                    </div>
                     <br />
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" />
-                        <label className="form-check-label text-muted" htmlFor="flexRadioDefault1">
-                            html
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" />
-                        <label className="form-check-label text-muted" htmlFor="flexRadioDefault2">
-                            html
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3" />
-                        <label className="form-check-label text-muted" htmlFor="flexRadioDefault3">
-                            html
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault4" />
-                        <label className="form-check-label text-muted" htmlFor="flexRadioDefault4">
-                            html
-                        </label>
-                    </div>
 
-                    {option()}
-                </div>
-                <hr />
-
-                {/*Check Box Code */}
-                <div>
-                    <label className='text-dark'>Question Text</label>
-                    <br />
-                    <div className="form-check">
-                        <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
-                        <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
-                            Default checkbox
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
-                        <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
-                            Default checkbox
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
-                        <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
-                            Default checkbox
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
-                        <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
-                            Default checkbox
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
-                        <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
-                            Default checkbox
-                        </label>
-                    </div>
-                    {option()}
+                    {setOptions(type, options)}
+                    {operation()}
                 </div>
             </form>
         </div>

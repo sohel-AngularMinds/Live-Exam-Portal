@@ -66,3 +66,68 @@
 
 // end option from addQuestion FIle
 /////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+<hr />
+
+
+from per Question
+                    {/*Check Box Code */}
+                    <div>
+                        <label className='text-dark'>Question Text</label>
+                        <br />
+                        <div className="form-check">
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
+                            <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
+                                Default checkbox
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
+                            <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
+                                Default checkbox
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
+                            <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
+                                Default checkbox
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
+                            <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
+                                Default checkbox
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault1" />
+                            <label className="form-check-label text-muted" htmlFor="flexCheckDefault">
+                                Default checkbox
+                            </label>
+                        </div>
+                        {operation()}
+                    </div>
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
+from QuestionPage
+
+                        {/* <hr className="dropdown-divider" />
+                        <PerQuestion />
+                        <hr className="dropdown-divider" />
+                        <PerQuestion />
+                        <hr className="dropdown-divider" />
+                        <PerQuestion />
+                        <hr className="dropdown-divider" />
+                        <PerQuestion />
+                        <hr className="dropdown-divider" />
+                        <PerQuestion /> */}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                                            
+
+
+ 
