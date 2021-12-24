@@ -18,9 +18,12 @@ const Questions = () => {
     // for number of questions of perticular topic
     const [totalCount, setTotalCount] = useState(() => 0)
     //for limit ite, per page
-    const [limit, setLimit] = useState(() => 20);
+    const [limit, setLimit] = useState(20);
     //-- for loading 
     const [loading, setLoading] = useState(true)
+
+    //--- for searching questions
+    const [findQuestion, setFindQuestion] = useState(() => '');
 
     ///////////////////////////////////////////////////////////
 
@@ -29,19 +32,18 @@ const Questions = () => {
     //-- pagination start
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [maxPageLimit, setMaxPageLimit] = useState(() => (Math.ceil((questions.length > 0 ? questions.length : 1) / limit)));
+    const [maxPageLimit, setMaxPageLimit] = useState((Math.ceil((questions.length > 0 ? questions.length : 1) / limit)));
     const [minPageLimit, setMinPageLimit] = useState(0);
 
 
     const pages = [];
-    for (let i = 1; i <= (Math.ceil((questions.length > 0 ? questions.length : 1) / limit)); i++)
+    for (let i = 1; i <= (Math.ceil((questions.length > 0 ? questions.length : limit) / limit)); i++)
         pages.push(i);
 
     const indexOfLastItem = currentPage * limit;
     const indexOfFirstItem = indexOfLastItem - limit;
 
     const currentItem = questions ? questions.slice(indexOfFirstItem, indexOfLastItem) : [];
-
 
     const renderPageNumber = pages.map((number) => {
         if (number < maxPageLimit + 1 && number > minPageLimit) {
@@ -68,8 +70,6 @@ const Questions = () => {
         setCurrentPage(Number(e.target.id))
     }
 
-
-
     const handlePrev = () => {
         setCurrentPage(currentPage - 1);
 
@@ -92,40 +92,63 @@ const Questions = () => {
 
     ///////////////////////////////////////////////////////////
     //service
+
+    const getKeywordForSearchQuestion = (keyword) => {
+        setFindQuestion(keyword);
+        setLoading(true);
+    }
+
     const getTopicForQuestionLoad = (topic, itemPerPage) => {
         setLimit(Number(itemPerPage));
         setTopicID(topic);
         setLoading(true);
     }
 
+
+    async function getQuestions(topicID) {
+        let url = `questions?page=1&limit=20&term=&topic=${topicID}`
+        return await questionsAPI(url);
+        // let temp = response.result.map((one, index) => <PerQuestion key={index} data={one} />)
+
+    }
     const renderQuestion = (currentQuestion) => {
         return currentQuestion.map((data, index) => <PerQuestion key={index} data={data} />)
     }
-
     ///////////////////////////////////////////////////////////
     //use effect
     useEffect(() => {
         if (topicID) {
             // ${limit}
-            let url = `questions?page=1&limit=20&term=&topic=${topicID}`
-            async function getQuestions() {
-                const response = await questionsAPI(url);
-                // let temp = response.result.map((one, index) => <PerQuestion key={index} data={one} />)
-                setTotalCount(response.totalCount)
+            const get = async () => {
+                const response = await getQuestions(topicID);
                 setQuestions(response.result);
+                setTotalCount(response.totalCount)
                 setLoading(false);
+                setMaxPageLimit(Math.ceil(response.result.length)/ limit)
             }
-            getQuestions();
+            get();
         }
     }, [topicID, limit])
 
     useEffect(() => {
         setMaxPageLimit(Math.ceil((questions.length > 0 ? questions.length : 1) / limit))
-        
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [limit])
 
 
+    useEffect(() => {
+        if (findQuestion !== '') {
+            // console.log(questions);
+            let temp = questions.filter(one => {
+                if (JSON.stringify(one.questionText).includes(findQuestion))
+                    return one;
+            })
+            setQuestions(temp);
+            setTotalCount(temp.length);
+            // setLoading(false);
+        }
+
+    }, [findQuestion])
     ///////////////////////////////////////////////////////////
     return (
         <div className="container">
@@ -147,7 +170,7 @@ const Questions = () => {
 
             <div className="card">
                 <div className="card-body">
-                    <QuestionMenu getTopicForQuestionLoad={getTopicForQuestionLoad} />
+                    <QuestionMenu getTopicForQuestionLoad={getTopicForQuestionLoad} getKeywordForSearchQuestion={getKeywordForSearchQuestion} />
 
                     {loading ?
                         <div className="text-center text-primary" >
@@ -162,7 +185,7 @@ const Questions = () => {
                             }
                             <div className="mt-5 d-flex justify-content-between align-middle">
                                 <div className="align-middle mt-2">
-                                    <h6 className="text-muted point">Showing {indexOfFirstItem+1} to {totalCount} of {totalCount} entries</h6>
+                                    <h6 className="text-muted point">Showing {indexOfFirstItem + 1} to {limit<totalCount?limit:totalCount} of {totalCount} entries</h6>
                                 </div>
                                 <div>
 

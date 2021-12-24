@@ -12,7 +12,7 @@ const Navbar = (props) => {
                         <span className="navbar-toggler-icon"></span>
                     </button>
                     <div className="collapse navbar-collapse text-center" id="navbarNavDropdown">
-                        <ul className="navbar-nav">
+                        <ul className="navbar-nav point">
                             <li className="nav-item">
                                 <span className="nav-link active"
                                     onClick={() => {
@@ -20,14 +20,14 @@ const Navbar = (props) => {
                                 }}
                                 >Questions</span>
                             </li>
-                            <li className="nav-item">
+                            <li className="nav-item point">
                                 <span className="nav-link">Subjects</span>
                             </li>
-                            <li className="nav-item">
+                            <li className="nav-item point">
                                 <span className="nav-link">Topics</span>
                             </li>
                         </ul>
-                    </div>
+                    </div> 
                 </div>
             </nav>
         </div>

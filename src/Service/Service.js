@@ -1,9 +1,9 @@
 import api from './api'
 
-let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQwMjMyOTk2LCJleHAiOjE2NDAyNzYxOTZ9.DQ-OEwBLT-9u9ofBPHTBAht2Oe0-KQ8JHlKRWhxSf4M'
+let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQwMzI0MzU3LCJleHAiOjE2NDAzNjc1NTd9.u0eT-dN5wGacy2gUBfGQUTwQ2lRGDVHhlkZv9PXWY9k'
 
 export const subjectAPI = async (url) => {
-    
+   
     const response = await api.get(url, {
         headers: {
             Authorization: token,

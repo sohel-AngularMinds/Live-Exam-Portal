@@ -4,14 +4,18 @@ import { subjectAPI } from '../Service/Service'
 
 const QuestionMenu = (props) => {
 
-    const { getTopicForQuestionLoad } = props
+    const { getTopicForQuestionLoad, getKeywordForSearchQuestion } = props
 
     let topicRef = useRef();
     /////////////////////////////////////////////////////////////////////////
     // for topic useState
-
     const [topics, setTopics] = useState(null);
     const [topicsOption, setTopicsOption] = useState(null);
+
+
+    //for search questions
+    const [searchQuestion, setSearchQuestion] = useState('');
+
 
     //for topic selected value
     const [value, setValue] = useState();
@@ -31,6 +35,11 @@ const QuestionMenu = (props) => {
             setTopicsOption(temp)
             getTopicForQuestionLoad(temp[0].props.id, itemPerPage)
         }
+    }
+
+    const getSearchText = (e) => {    
+        setSearchQuestion(e.target.value);
+        getKeywordForSearchQuestion(e.target.value)
     }
 
     const getOption = (e) => {
@@ -63,6 +72,10 @@ const QuestionMenu = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [topics])
 
+    //render 6 times per refresh thats why not used
+    // useEffect(() => {
+    //     getKeywordForSearchQuestion(searchQuestion);
+    // })
     /////////////////////////////////////////////////////////////////////////////
     return (
         <>
@@ -78,7 +91,7 @@ const QuestionMenu = (props) => {
                                 <select
                                     className="form-select-sm"
                                     onChange={(e) => {
-                                        getTopicForQuestionLoad(topicRef.current.value,e.target.value)
+                                        getTopicForQuestionLoad(topicRef.current.value, e.target.value)
                                         setItemPerPage(Number(e.target.value))
                                     }}
                                     defaultValue={itemPerPage}>
@@ -95,15 +108,21 @@ const QuestionMenu = (props) => {
                     <li className="nav-item text-center">
                         <form className="d-inline-flex nav-link text-secondary">
                             <div className="me-2">
-                                <input className="form-control me-2" type="search" placeholder="Search Question " />
+                                <input
+                                    className="form-control me-2"
+                                    type="search"
+                                    placeholder="Search Question"
+                                    onChange={getSearchText}
+                                    value={searchQuestion}
+                                />
                             </div>
 
                             <div>
                                 <select className="form-select"
-                                        onChange={getOption}
-                                        value={value && value}
-                                        placeholder="choose Option"
-                                        ref={topicRef}
+                                    onChange={getOption}
+                                    value={value && value}
+                                    placeholder="choose Option"
+                                    ref={topicRef}
                                 >
                                     {topicsOption}
                                 </select>
