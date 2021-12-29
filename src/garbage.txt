@@ -130,4 +130,41 @@ from QuestionPage
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                                            
 
 
- 
+   //////////////////////////////////////////////////////////////////
+    //---- ADD OPTION IN LIST
+
+    // const option = (key, optionNumber) => {
+    //     //acceptiong type also binding with some value
+
+    //     return (
+    //         <div className="col-12 mb-3" key={key} id={optionNumber}>
+    //             <div className="input-group ">
+    //                 <span className="input-group-text align-baseline gap-2">
+    //                     <span className="">
+    //                         <input className="form-check-input" type="checkbox" />
+    //                     </span>
+    //                     <span className="mt-2">
+    //                         <h6>Option {Number(optionNumber) + 1} </h6>
+    //                     </span>
+    //                 </span>
+    //                 <textarea className="form-control" aria-label="With textarea"></textarea>
+    //             </div>
+
+    //             <div className="point">
+    //                 <span
+    //                     className="form-text"
+    //                     onClick={() => { removeOption(key) }}
+    //                 >
+    //                     Remove Option{key}
+    //                 </span>
+    //                 <span className="form-text"> | </span>
+    //                 <span
+    //                     className="form-text"
+    //                 >
+    //                     Enable Rich Text Editor
+    //                 </span>
+    //             </div>console.log("CSCS");
+    //         </div>
+    //     )
+    // }
+    /////////////////////////////////////////////////////////////////

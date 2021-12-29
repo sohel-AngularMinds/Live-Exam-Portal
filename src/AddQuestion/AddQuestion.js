@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Option from '../Option/Option'
+import { subjectAPI } from '../Service/Service'
 
 let backup = [];
 
 
 const AddQuestion = (props) => {
 
+
+    /////////////////////////////////////////////////////////
+    // functions passed as props to other component
     const remove = (temp) => {
         let removed = backup.filter(one => one.key !== temp)
         backup = removed.slice();
@@ -16,121 +20,141 @@ const AddQuestion = (props) => {
                     id={option.key}
                     optionNumber={index}
                     remove={remove}
+                    optionData={optionData}
                 />
             )
         })
-
         setOptionList(edited)
     }
 
+    ////--------- Manages Option Data of Data List
+    const getOptionData = (index,object) => {
+        console.log(index);
+    }
+
+    /////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
-    // use states
+    //---- use states
+
     //for fullscreen mode
     const [fullScreen, setFullScreen] = useState(false);
     const [iconChange, setIconChange] = useState(false);
-    // for option Array
+
+    //--- for get SubjectId for gets respective topic from dataBase
+    const [subjectId, setSubjectId] = useState(null);
+    //---- for getting data of Subject
+    const [subjectList, setSubjectList] = useState();
+
+    //--- for get TopicId 
+    const [topicId, setTopicId] = useState(null);
+    //---- for getting data of selected subject
+    const [topicList, setTopicList] = useState(null);
+
+    //------- for  Question Type
+    const [questionType, setQuestionType] = useState('MULTIPLE CHOICE');
+
+    //------ for  Question Level
+    const [diffLevel, setDiffLevel] = useState('Medium');
+
+    //------ for right mark
+    const [rightMarks, setRightMarks] = useState(1);
+
+    //------ for wrong mark
+    const [wrongMarks, setWrongMarks] = useState(0);
+
+    //------ for question text
+    const questionText = useRef();
+
+
+
+    // for option Data
+    const [optionData, setOptionData] = useState([{ option: "", isCorrect: false, richTextEditor: false }, { option: "", isCorrect: false, richTextEditor: false }])
+    // for option Array of option
     const [optionList, setOptionList] = useState(() => callTwice());
-
-
     const [showOptionList, setShowOptionList] = useState(null);
 
-    // const [backup,dispatch]=useReducer(reducer,callTwice());
 
 
 
+    //------- end 
     //////////////////////////////////////////////////////////
+    //-- start
     //on click toggle full screen
     const changeFullScreenMode = () => {
         let temp = !fullScreen;
         setFullScreen(temp);
         props.toggleNavbar(temp);
     }
+
+    //-- end
     //////////////////////////////////////////////////////////
 
 
 
+  
 
-
-
-
-
-    //////////////////////////////////////////////////////////////////
-    //---- ADD OPTION IN LIST
-
-    // const option = (key, optionNumber) => {
-    //     //acceptiong type also binding with some value
-
-    //     return (
-    //         <div className="col-12 mb-3" key={key} id={optionNumber}>
-    //             <div className="input-group ">
-    //                 <span className="input-group-text align-baseline gap-2">
-    //                     <span className="">
-    //                         <input className="form-check-input" type="checkbox" />
-    //                     </span>
-    //                     <span className="mt-2">
-    //                         <h6>Option {Number(optionNumber) + 1} </h6>
-    //                     </span>
-    //                 </span>
-    //                 <textarea className="form-control" aria-label="With textarea"></textarea>
-    //             </div>
-
-    //             <div className="point">
-    //                 <span
-    //                     className="form-text"
-    //                     onClick={() => { removeOption(key) }}
-    //                 >
-    //                     Remove Option{key}
-    //                 </span>
-    //                 <span className="form-text"> | </span>
-    //                 <span
-    //                     className="form-text"
-    //                 >
-    //                     Enable Rich Text Editor
-    //                 </span>
-    //             </div>console.log("CSCS");
-    //         </div>
-    //     )
-    // }
-
-
-
-
-
-
-    /////////////////////////////////////////////////////////////////
-
-
+    //////////////////////////////////////////////////////////
     //add new Option
     const addNewOption = () => {
         let temp = optionList.slice();
+        let tempData = [...optionData];
+        tempData.push({ option: "", isCorrect: false, richTextEditor: false })
+        setOptionData(tempData);
         let a = <Option key={`key${new Date().getTime() + (temp.length * 10)}`}
             id={`key${new Date().getTime() + (temp.length * 10)}`}
+
+            type={questionType}
             optionNumber={temp.length}
             remove={remove}
+            addOptionData={getOptionData}
+            optionData={tempData}
         />
+        
         temp.push(a);
         backup.push(a)
         setOptionList(prev => prev = temp);
-
     }
-
-
-    //Inintial Value
+    //////////////////////////////////////////////////////////
+    ////-------------- Inintial Value
     function callTwice() {
         let i = 0;
         let temp = [];
         while (i < 2) {
-            temp.push(<Option
-                key={`key${new Date().getTime() + (i * 10)}`}
-                id={`key${new Date().getTime() + (i * 10)}`}
-                optionNumber={i}
-                remove={remove}
-            />)
+            temp.push(
+                <Option
+                    key={`key${new Date().getTime() + (i * 10)}`}
+                    id={`key${new Date().getTime() + (i * 10)}`}
+
+                    type={questionType}
+                    optionNumber={i}
+                    remove={remove}
+                    addOptionData={getOptionData}
+                    optionData={optionData}
+                />)
             i++;
         }
         backup = temp.slice();
         return temp
     }
+    //////////////////////////////////////////////////////////
+
+
+    //--- sets option type when user change 
+    //type of question to one to another
+    const setOptionType = (e) => {
+        setQuestionType(e.target.value);
+        console.log(optionList);
+        let temp = optionList.map(option => {
+            return ({ ...option, props: { ...option.props, type: e.target.value } })
+        })
+        setOptionList(temp);
+    }
+
+    //--- gets option Data
+
+
+
+
 
 
     //for render list when it add one element or remove element from it
@@ -140,9 +164,51 @@ const AddQuestion = (props) => {
         }
     }, [optionList])
 
-    /////////////////////////////////////////////////////////
+    //--- use effect for load data from api
+    useEffect(() => {
+        try {
+            let url = '/subjects?term='
+            const get = async () => {
+                const response = await subjectAPI(url);
+                let temp = response.result.map((res) =>
+                    <option
+                        key={res._id}
+                        value={res._id}
+                    >
+                        {res.name}
+                    </option>
+                )
+                setSubjectList(temp)
+            }
+            get();
+        }
+        catch (e) {
 
-    // currentState();
+        }
+    }, [])
+
+    //after changing the subjectd
+    useEffect(() => {
+        //http://admin.liveexamcenter.in/api/topics/subject
+        if (subjectId) {
+            let url = "/topics/subject/" + subjectId
+            const get = async () => {
+                const response = await subjectAPI(url);
+                setTopicList(
+                    response.map(res => {
+                        return (
+                            <option key={res._id} value={res._id}>
+                                {res.name}
+                            </option>
+                        )
+                    })
+                )
+            }
+            get();
+        }
+    }, [subjectId])
+    //------- end useEffect
+    /////////////////////////////////////////////////////////
     return (
         <div className="container mt-4">
             <div className="card">
@@ -166,54 +232,95 @@ const AddQuestion = (props) => {
                         <div className="row">
                             <div className="col-6 mb-3">
                                 <label className="form-label">Select Subject</label>
-                                <select className="form-select disable">
-                                    {/* <option selected>Open this select menu</option> */}
-                                    <option className=" text-muted" disabled>type to search Subject</option>
-                                    <option value="1">One</option>
-                                    <option value="2">Two</option>
-                                    <option value="3">Three</option>
+                                <select
+                                    className="form-select"
+                                    defaultValue={'ttss'}
+                                    onChange={(e) => setSubjectId(e.target.value)}
+                                >
+                                    <option
+                                        value="ttss"
+                                        style={{ display: 'none' }}
+                                    >
+                                        type to search Subject
+                                    </option>
+                                    {subjectList}
                                 </select>
+                                <div className="form-text text-danger">*Subject is required</div>
                             </div>
 
                             <div className="col-6 mb-3">
                                 <label className="form-label">Select Topic</label>
-                                <select className="form-select">
-                                    <option className="disable text-muted" disabled>type to search Topic</option>
-                                    <option value="1">One</option>
-                                    <option value="2">Two</option>
-                                    <option value="3">Three</option>
+                                <select
+                                    className="form-select"
+                                    defaultValue={'ttst'}
+                                    onChange={(e) => setTopicId(e.target.value)}
+                                >
+                                    <option value="ttst" style={{ display: 'none' }}>type to search Topic</option>
+                                    {
+                                        topicList ?
+                                            <>
+                                                {topicList}
+                                            </>
+                                            :
+                                            <option disabled>select subject first</option>
+                                    }
                                 </select>
+
+                                <div className="form-text text-danger">*Topic is required</div>
                             </div>
                         </div>
-
-
 
                         <div className="row">
                             <div className="col-3 mb-3">
                                 <label className="form-label">Question Type</label>
-                                <select className="form-select">
-                                    {/* <option selected>Open this select menu</option> */}
-                                    <option value="radio">Multiple Choice</option>
-                                    <option value="checkbox">Multiple Options</option>
-                                    <option value="radio">Fill In The Blank</option>
+                                <select
+                                    className="form-select"
+                                    defaultValue={questionType}
+                                    name="questionType"
+                                    onChange={setOptionType}
+                                >
+                                    <option value="MULTIPLE CHOICE">MULTIPLE CHOICE</option>
+                                    <option value="MULTIPLE OPTIONS">MULTIPLE OPTIONS</option>
+                                    <option value="FILL IN BLANKS">FILL IN BLANKS</option>
                                 </select>
                             </div>
+
+
                             <div className="col-3 mb-3">
                                 <label className="form-label">Difficulty Level</label>
-                                <select className="form-select" >
-                                    {/* <option selected>Open this select menu</option> */}
-                                    <option value="1">Easy</option>
-                                    <option value="2">Medium</option>
-                                    <option value="3">Hard</option>
+                                <select className="form-select"
+                                    name="diffLevel"
+                                    defaultValue={diffLevel}
+                                    onChange={(e) => {
+                                        setDiffLevel(e.target.value);
+                                    }}
+                                >
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Hard">Hard</option>
                                 </select>
                             </div>
                             <div className="col-3 mb-3">
                                 <label className="form-label">Right Mark</label>
-                                <input type="text" className="form-control" ></input>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={rightMarks}
+                                    onChange={(e) => {
+                                        setRightMarks(Number(e.target.value))
+                                    }}
+                                />
                             </div>
                             <div className="col-3 mb-3">
                                 <label className="form-label">Wrong Mark</label>
-                                <input type="text" className="form-control" ></input>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={wrongMarks}
+                                    onChange={(e) => {
+                                        setWrongMarks(Number(e.target.value))
+                                    }}
+                                />
                             </div>
                         </div>
 
@@ -221,13 +328,17 @@ const AddQuestion = (props) => {
                             <div className="col-12 mb-3">
                                 <label className="form-label">Question</label>
                                 <div className="form-floating">
-                                    <textarea className="form-control" placeholder="Question" style={{ height: "100px" }}></textarea>
+                                    <textarea
+                                        className="form-control"
+                                        placeholder="Question"
+                                        style={{ height: "100px" }}
+                                        ref={questionText}
+                                    ></textarea>
                                     <label className="form-label text-dark">Question</label>
                                     <div className="form-text point">Enable Rich Text Editor</div>
                                 </div>
                             </div>
                         </div>
-
 
                         {/* Options Parts */}
                         <div className="row">
@@ -255,5 +366,4 @@ const AddQuestion = (props) => {
         </div>
     )
 }
-
 export default AddQuestion

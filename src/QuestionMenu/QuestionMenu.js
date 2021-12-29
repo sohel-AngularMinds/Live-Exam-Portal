@@ -10,41 +10,37 @@ const QuestionMenu = (props) => {
     /////////////////////////////////////////////////////////////////////////
     // for topic useState
     const [topics, setTopics] = useState(null);
-    const [topicsOption, setTopicsOption] = useState(null);
-
-
     //for search questions
     const [searchQuestion, setSearchQuestion] = useState('');
-
-
     //for topic selected value
-    const [value, setValue] = useState();
     const [itemPerPage, setItemPerPage] = useState(20);
     /////////////////////////////////////////////////////////////////////////
 
     const getSubjectTopicOption = () => {
         if (topics) {
+            let localStore = JSON.parse(localStorage.getItem('_topicId'));
             let temp = topics.result.map(oneResult =>
                 <option
                     key={oneResult._id}
-                    id={oneResult._id}
-                    value={oneResult._id}>
+                    value={oneResult._id}
+                >
                     {oneResult.name}
-                </option>)
-            setValue(temp[0].props.name)
-            setTopicsOption(temp)
-            getTopicForQuestionLoad(temp[0].props.id, itemPerPage)
+                </option>
+            )
+            // setTopicsOption(temp)
+            localStorage.setItem("_itemperpage", itemPerPage);
+            getTopicForQuestionLoad(localStore?localStore.topic:temp[0].props.id, itemPerPage)
         }
     }
 
-    const getSearchText = (e) => {    
+    const getSearchText = (e) => {
         setSearchQuestion(e.target.value);
         getKeywordForSearchQuestion(e.target.value)
     }
 
     const getOption = (e) => {
+        localStorage.setItem('_topicId', JSON.stringify({ topic: e.target.value }))
         getTopicForQuestionLoad(e.target.value, itemPerPage)
-        setValue(e.target.value);
     }
 
 
@@ -52,17 +48,21 @@ const QuestionMenu = (props) => {
     //for getting topics
     useEffect(() => {
         let url = '/topics?page=1&limit=9007199254740991&term='
+        let localStore = JSON.parse(localStorage.getItem('_topicId'));
         try {
             async function get() {
                 //function statement
                 const resp = await subjectAPI(url);
                 setTopics(resp);
+                localStorage.setItem('_topicId', localStore ? JSON.stringify(localStore) : JSON.stringify({ topic: resp.result[0]._id }))
             }
             get();
+            localStorage.setItem("_itemperpage", itemPerPage);
         }
         catch (err) {
             console.log(err);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
@@ -72,10 +72,6 @@ const QuestionMenu = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [topics])
 
-    //render 6 times per refresh thats why not used
-    // useEffect(() => {
-    //     getKeywordForSearchQuestion(searchQuestion);
-    // })
     /////////////////////////////////////////////////////////////////////////////
     return (
         <>
@@ -93,6 +89,7 @@ const QuestionMenu = (props) => {
                                     onChange={(e) => {
                                         getTopicForQuestionLoad(topicRef.current.value, e.target.value)
                                         setItemPerPage(Number(e.target.value))
+                                        localStorage.setItem("_itemperpage", Number(e.target.value));
                                     }}
                                     defaultValue={itemPerPage}>
                                     <option value="05">05</option>
@@ -120,18 +117,26 @@ const QuestionMenu = (props) => {
                             <div>
                                 <select className="form-select"
                                     onChange={getOption}
-                                    value={value && value}
                                     placeholder="choose Option"
                                     ref={topicRef}
+                                    value={JSON.parse(localStorage.getItem('_topicId')).topic}
                                 >
-                                    {topicsOption}
+                                    {
+                                        topics?topics.result.map(oneResult =>
+                                            <option
+                                                key={oneResult._id}
+                                                value={oneResult._id}
+                                            >
+                                                {oneResult.name}
+                                            </option>
+                                        ):''
+                                    }
                                 </select>
                             </div>
                         </form>
                     </li>
                 </ul>
             </div>
-            {/* <hr></hr> */}
         </>
     )
 }

@@ -6,8 +6,17 @@ import PerQuestion from '../PerQuestion/PerQuestion'
 import { useNavigate } from 'react-router-dom'
 
 
+async function getQuestions(topicID) {
+    let url = `questions?page=1&limit=&term=&topic=${topicID}`
+    return await questionsAPI(url);
+}
+
+const renderQuestion = (currentQuestion) => {
+    return currentQuestion.map((data, index) => <PerQuestion key={index} data={data} />)
+}
 
 
+//main function
 const Questions = () => {
     let navigate = useNavigate();
     ///////////////////////////////////////////////////////////
@@ -17,6 +26,7 @@ const Questions = () => {
     const [questions, setQuestions] = useState([]);
     // for number of questions of perticular topic
     const [totalCount, setTotalCount] = useState(() => 0)
+
     //for limit ite, per page
     const [limit, setLimit] = useState(20);
     //-- for loading 
@@ -24,35 +34,41 @@ const Questions = () => {
 
     //--- for searching questions
     const [findQuestion, setFindQuestion] = useState(() => '');
-
     ///////////////////////////////////////////////////////////
-
 
     ///////////////////////////////////////////////////////////
     //-- pagination start
-
     const [currentPage, setCurrentPage] = useState(1);
-    const [maxPageLimit, setMaxPageLimit] = useState((Math.ceil((questions.length > 0 ? questions.length : 1) / limit)));
+    const [itemPerPage, setItemPerPage] = useState(20)
+
+    // eslint-disable-next-line no-unused-vars
+    const [pageNumberLimit, setPageNumberLimit] = useState(questions.length % itemPerPage);
+
+    const [maxPageLimit, setMaxPageLimit] = useState(10);
     const [minPageLimit, setMinPageLimit] = useState(0);
 
-
     const pages = [];
-    for (let i = 1; i <= (Math.ceil((questions.length > 0 ? questions.length : limit) / limit)); i++)
+
+    for (let i = 1; i <= Math.ceil(questions.length / itemPerPage); i++) {
         pages.push(i);
+    }
 
-    const indexOfLastItem = currentPage * limit;
-    const indexOfFirstItem = indexOfLastItem - limit;
+    const indexOfLastItem = currentPage * itemPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemPerPage;
 
-    const currentItem = questions ? questions.slice(indexOfFirstItem, indexOfLastItem) : [];
+    const currentItem = questions.slice(indexOfFirstItem, indexOfLastItem);
+
+    const handlePagination = (e) => {
+        setCurrentPage(Number(e.target.id))
+    }
 
     const renderPageNumber = pages.map((number) => {
-        if (number < maxPageLimit + 1 && number > minPageLimit) {
+        if (number > minPageLimit && number < maxPageLimit + 1) {
             return (
                 <li
                     key={number}
                     id={number}
-                    // eslint-disable-next-line eqeqeq
-                    className={`page-item ${currentPage == number ? 'active' : ''}`}
+                    className={`page-item ${currentPage === Number(number) ? 'active' : null}`}
                     onClick={
                         (e) => handlePagination(e)
                     }
@@ -64,29 +80,27 @@ const Questions = () => {
                 </li>
             )
         }
+        else {
+            return null;
+        }
     })
-
-    const handlePagination = (e) => {
-        setCurrentPage(Number(e.target.id))
-    }
 
     const handlePrev = () => {
         setCurrentPage(currentPage - 1);
 
-        if ((currentPage - 1) % limit === 0) {
-            setMaxPageLimit(maxPageLimit - limit);
-            setMinPageLimit(minPageLimit - limit);
+        if ((currentPage - 1) % pageNumberLimit === 0) {
+            setMaxPageLimit(maxPageLimit - pageNumberLimit);
+            setMinPageLimit(minPageLimit - pageNumberLimit);
         }
     }
 
     const handleNext = () => {
         setCurrentPage(currentPage + 1);
         if (currentPage + 1 > maxPageLimit) {
-            setMaxPageLimit(maxPageLimit + limit);
-            setMinPageLimit(minPageLimit + limit);
+            setMaxPageLimit(maxPageLimit + pageNumberLimit);
+            setMinPageLimit(minPageLimit + pageNumberLimit);
         }
     }
-
     //---/pagination End
     ///////////////////////////////////////////////////////////
 
@@ -94,61 +108,108 @@ const Questions = () => {
     //service
 
     const getKeywordForSearchQuestion = (keyword) => {
-        setFindQuestion(keyword);
+        let temp = keyword
+        setFindQuestion(temp);
         setLoading(true);
     }
 
-    const getTopicForQuestionLoad = (topic, itemPerPage) => {
-        setLimit(Number(itemPerPage));
+    const getTopicForQuestionLoad = (topic, IPP) => {
+        setLimit(Number(IPP));
+        setItemPerPage(Number(IPP))
+        setCurrentPage(1);
         setTopicID(topic);
         setLoading(true);
     }
-
-
-    async function getQuestions(topicID) {
-        let url = `questions?page=1&limit=20&term=&topic=${topicID}`
-        return await questionsAPI(url);
-        // let temp = response.result.map((one, index) => <PerQuestion key={index} data={one} />)
-
-    }
-    const renderQuestion = (currentQuestion) => {
-        return currentQuestion.map((data, index) => <PerQuestion key={index} data={data} />)
-    }
     ///////////////////////////////////////////////////////////
+
+
     //use effect
     useEffect(() => {
-        if (topicID) {
-            // ${limit}
+        try {
             const get = async () => {
                 const response = await getQuestions(topicID);
                 setQuestions(response.result);
                 setTotalCount(response.totalCount)
                 setLoading(false);
-                setMaxPageLimit(Math.ceil(response.result.length)/ limit)
+                setCurrentPage(1)
             }
-            get();
+
+            if (findQuestion !== '') {
+                const getQText = async () => {
+                    const response = await getQuestions(topicID);
+                    let temp = response.result.filter(one => {
+                        if ((one.questionText).toLowerCase().includes(findQuestion.toLowerCase()))
+                            return one;
+                    })
+                    setQuestions(temp);
+                    setTotalCount(temp.length);
+                    setLoading(false);
+                }
+                if (topicID) {
+                    getQText()
+                }
+            }
+            else {
+                if (topicID) {
+                    get();
+                }
+            }
         }
-    }, [topicID, limit])
+        catch (e) {
+            console.log(e);
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [topicID, findQuestion])
+
 
     useEffect(() => {
-        setMaxPageLimit(Math.ceil((questions.length > 0 ? questions.length : 1) / limit))
+        if (topicID) {
+            try {
+                const get = async () => {
+                    const response = await getQuestions(topicID);
+                    setMaxPageLimit(Math.ceil(response.result.length / limit));
+                    setLoading(false);
+                }
+                get();
+                setItemPerPage(limit)
+                setCurrentPage(1)
+            }
+            catch (e) {
+
+            }
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [limit])
 
+    // useEffect(() => {
+    //     try {
+    //         if (findQuestion !== '') {
+    //             const getQText = async () => {
+    //                 const response = await getQuestions(topicID);
+    //                 let temp = response.result.filter(one => {
+    //                     if ((one.questionText).toLowerCase().includes(findQuestion.toLowerCase()))
+    //                         return one;
+    //                 })
+    //                 setQuestions(temp);
+    //                 setTotalCount(temp.length);
+    //                 setLoading(false);
+    //             }
+    //             getQText()
+    //         }
+    //         else {
+    //             if (topicID) {
+    //                 get();
+    //             }
+    //         }
+    //     }
+    //     catch (e) {
+    //         console.log(e);
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [findQuestion])
 
-    useEffect(() => {
-        if (findQuestion !== '') {
-            // console.log(questions);
-            let temp = questions.filter(one => {
-                if (JSON.stringify(one.questionText).includes(findQuestion))
-                    return one;
-            })
-            setQuestions(temp);
-            setTotalCount(temp.length);
-            // setLoading(false);
-        }
 
-    }, [findQuestion])
     ///////////////////////////////////////////////////////////
     return (
         <div className="container">
@@ -185,7 +246,7 @@ const Questions = () => {
                             }
                             <div className="mt-5 d-flex justify-content-between align-middle">
                                 <div className="align-middle mt-2">
-                                    <h6 className="text-muted point">Showing {indexOfFirstItem + 1} to {limit<totalCount?limit:totalCount} of {totalCount} entries</h6>
+                                    <h6 className="text-muted point">Showing {indexOfFirstItem + 1} to {limit < totalCount ? limit : totalCount} of {totalCount} entries</h6>
                                 </div>
                                 <div>
 
@@ -206,7 +267,7 @@ const Questions = () => {
                                             <li className={`page-item ${currentPage === pages.length ? 'disabled' : ''}`}
                                             >
                                                 <button className="page-link"
-                                                    disabled={Number(currentPage - 1) === Number(pages[pages.length]) ? true : false}
+                                                    disabled={Number(currentPage) === Number(pages[pages.length]) ? true : false}
                                                     onClick={handleNext}
                                                 >
                                                     Next
@@ -226,4 +287,3 @@ const Questions = () => {
     )
 }
 export default Questions
-
