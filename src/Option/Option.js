@@ -1,26 +1,52 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 
+
+let optionDataBackup = [];
 const Option = (props) => {
     let { id, optionNumber, remove, type, addOptionData,optionData } = props
+    
     const [data, setData] = useState({
-        isCorrect: optionData[optionNumber].isCorrect,
-        option: optionData[optionNumber].option,
-        richTextEditor:optionData[optionNumber].richTextEditor
+        option: "",
+        isCorrect: false,
+        richTextEditor: false,
+        id
     })
 
     const changeBoolean = (e) => {
-        setData({...data,isCorrect:!data.isCorrect})
-        console.log(optionData);
+        // console.log(e.target.id);
+        // console.log(e.target.checked);
+        // let temp = data.map((oneObj,index) => {
+        //     if (oneObj.id === e.target.id)
+        //     {
+        //         console.log(oneObj);
+        //     }
+
+        // })
+        setData({ ...data, isCorrect: e.target.value })
+        let x =e.target.id;
+        console.log(x);
+        // setData()
+        // console.log((e.target.checked));
+        //
     }
     const changeOption = (e) => {
-        setData({...data,[e.target.name]:e.target.value})
+        setData({ ...data, [e.target.name]: e.target.value })
     }
 
-    const removeOption = (key) => {
+    const removeOption = (key, index) => {
         remove(key)
     }
 
-    console.log(data);
+    useEffect(() => {
+        if (data.option !== '')
+        {
+            console.log(data);
+            // addOptionData
+            // addOptionData(data)  
+        }
+    }, [data])
+
+
     return (
         <div className="col-12 mb-3" >
             <div className="input-group ">
@@ -30,8 +56,9 @@ const Option = (props) => {
                             className="form-check-input"
                             type={type === 'MULTIPLE OPTIONS' ? 'checkbox' : 'radio'}
                             name={type === 'MULTIPLE OPTIONS' ? `check${optionNumber + 1}` : 'isCorrect'}
-                            id={optionNumber}
-                            value={data.isCorrect}
+                            id={id}
+                            value={Boolean(data.isCorrect) && true}
+                            checked={Boolean(data.isCorrect) && true}
                             onChange={changeBoolean}
                         />
                     </span>
@@ -50,7 +77,7 @@ const Option = (props) => {
             <div className="point">
                 <span
                     className="form-text"
-                    onClick={() => removeOption(id)}
+                    onClick={() => removeOption(id, optionNumber)}
                 >
                     Remove Option {id}
                 </span>

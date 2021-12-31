@@ -3,14 +3,18 @@ import Option from '../Option/Option'
 import { subjectAPI } from '../Service/Service'
 
 let backup = [];
+let optionDataBackup = [];
 
 
 const AddQuestion = (props) => {
 
+    // for option Data
+    const [optionData, setOptionData] = useState([{ option: "", isCorrect: false, richTextEditor: false }, { option: "", isCorrect: false, richTextEditor: false }])
 
     /////////////////////////////////////////////////////////
     // functions passed as props to other component
     const remove = (temp) => {
+
         let removed = backup.filter(one => one.key !== temp)
         backup = removed.slice();
 
@@ -19,8 +23,9 @@ const AddQuestion = (props) => {
                 <Option key={option.key}
                     id={option.key}
                     optionNumber={index}
-                    remove={remove}
-                    optionData={optionData}
+                    remove={option.props.remove}
+                    type={option.props.type}
+                    addOptionData={option.props.addOptionData}
                 />
             )
         })
@@ -28,8 +33,12 @@ const AddQuestion = (props) => {
     }
 
     ////--------- Manages Option Data of Data List
-    const getOptionData = (index,object) => {
-        console.log(index);
+    const getOptionData = (object) => {
+        // let temp = optionData.slice();
+        // temp[index] = object;
+        // console.log(temp);
+        console.log(object);
+        setOptionData(object);
     }
 
     /////////////////////////////////////////////////////////
@@ -67,8 +76,7 @@ const AddQuestion = (props) => {
 
 
 
-    // for option Data
-    const [optionData, setOptionData] = useState([{ option: "", isCorrect: false, richTextEditor: false }, { option: "", isCorrect: false, richTextEditor: false }])
+
     // for option Array of option
     const [optionList, setOptionList] = useState(() => callTwice());
     const [showOptionList, setShowOptionList] = useState(null);
@@ -91,51 +99,85 @@ const AddQuestion = (props) => {
 
 
 
-  
+
 
     //////////////////////////////////////////////////////////
     //add new Option
     const addNewOption = () => {
-        let temp = optionList.slice();
-        let tempData = [...optionData];
-        tempData.push({ option: "", isCorrect: false, richTextEditor: false })
-        setOptionData(tempData);
-        let a = <Option key={`key${new Date().getTime() + (temp.length * 10)}`}
-            id={`key${new Date().getTime() + (temp.length * 10)}`}
 
+        let temp = optionList.slice();
+        let tempData = optionData.slice();
+
+        let key = `key${new Date().getTime() + (temp.length * 10)}`
+
+        let newObj = {
+            option: "",
+            isCorrect: false,
+            richTextEditor: false,
+            id: key
+        }
+
+        tempData.push(newObj);
+        optionDataBackup.push(newObj);
+
+        // console.log(optionDataBackup);
+
+        let a = <Option key={key}
+            id={key}
             type={questionType}
             optionNumber={temp.length}
             remove={remove}
             addOptionData={getOptionData}
-            optionData={tempData}
+            optionData={optionDataBackup}
         />
-        
         temp.push(a);
-        backup.push(a)
+        backup.push(a);
+
         setOptionList(prev => prev = temp);
+        setOptionData(prev => prev = tempData);
     }
     //////////////////////////////////////////////////////////
     ////-------------- Inintial Value
     function callTwice() {
         let i = 0;
         let temp = [];
+
+
         while (i < 2) {
+            let key = `key${new Date().getTime() + (temp.length * 10)}`
             temp.push(
                 <Option
-                    key={`key${new Date().getTime() + (i * 10)}`}
-                    id={`key${new Date().getTime() + (i * 10)}`}
-
+                    key={key}
+                    id={key}
                     type={questionType}
                     optionNumber={i}
                     remove={remove}
                     addOptionData={getOptionData}
-                    optionData={optionData}
                 />)
             i++;
         }
+
+
+        optionDataBackup = optionData.map((one, index) => {
+            return ({
+                ...one, id: temp[index].key
+            })
+        });
+
+
+        temp = temp.map((oneObj) => {
+            return (
+                {
+                    ...oneObj, props: { ...oneObj.props, optionData: optionDataBackup }
+                }
+            )
+        })
+
         backup = temp.slice();
+        setOptionData(optionDataBackup);
         return temp
     }
+
     //////////////////////////////////////////////////////////
 
 
@@ -143,7 +185,6 @@ const AddQuestion = (props) => {
     //type of question to one to another
     const setOptionType = (e) => {
         setQuestionType(e.target.value);
-        console.log(optionList);
         let temp = optionList.map(option => {
             return ({ ...option, props: { ...option.props, type: e.target.value } })
         })
@@ -152,15 +193,15 @@ const AddQuestion = (props) => {
 
     //--- gets option Data
 
-
-
-
+    function onSubmit() {
+        console.log(optionData);
+    }
 
 
     //for render list when it add one element or remove element from it
     useEffect(() => {
         if (optionList != null) {
-            setShowOptionList(prev => prev = optionList);
+            setShowOptionList(optionList);
         }
     }, [optionList])
 
@@ -208,6 +249,11 @@ const AddQuestion = (props) => {
         }
     }, [subjectId])
     //------- end useEffect
+
+
+    // console.log(optionData);
+
+
     /////////////////////////////////////////////////////////
     return (
         <div className="container mt-4">
@@ -358,7 +404,7 @@ const AddQuestion = (props) => {
                 </div>
                 <div className="card-header gap-2">
                     <div className="my-2">
-                        <button type="submit" className="btn btn-primary mx-2">Save Question</button>
+                        <button type="submit" className="btn btn-primary mx-2" onClick={onSubmit}>Save Question</button>
                         <button type="button" className="btn mx-2"> Cancel </button>
                     </div>
                 </div>
