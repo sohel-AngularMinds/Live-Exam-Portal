@@ -1,28 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Option from '../Option/Option'
-import { subjectAPI,postQuestions } from '../Service/Service'
+import { subjectAPI, postQuestions } from '../Service/Service'
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 let backup = [];
 let optionDataBackup = [];
 
 const AddQuestion = (props) => {
     // for option Data
-    const [optionData, setOptionData] = useState([
-        { option: "", isCorrect: false, richTextEditor: false },
-        { option: "", isCorrect: false, richTextEditor: false }
-    ])
-
+    const [optionData, setOptionData] = useState([])
     /////////////////////////////////////////////////////////
     // functions passed as props to other component
-    
+
     ////--------- Manages Option Data of Data List
-    const changeOptionData = (key,type) => {
-        if (type !== 'MULTIPLE RESPONSE')
-        {
+    const changeOptionData = (key, type) => {
+        if (type !== 'MULTIPLE RESPONSE') {
             // setSelectedOption(key);
             optionDataBackup = optionDataBackup.map((oneObj, index) => {
-                if(oneObj.id!==key) 
-                {   
+                if (oneObj.id !== key) {
                     oneObj.isCorrect = false;
                 }
                 else {
@@ -32,11 +29,9 @@ const AddQuestion = (props) => {
             })
             setOptionData(optionDataBackup);
         }
-        else
-        {
+        else {
             optionDataBackup = optionDataBackup.map((oneObj, index) => {
-                if(oneObj.id===key) 
-                {   
+                if (oneObj.id === key) {
                     oneObj.isCorrect = !Boolean(oneObj.isCorrect);
                 }
                 return oneObj;
@@ -45,7 +40,7 @@ const AddQuestion = (props) => {
         }
     }
 
-    const changeOptionText = (e, id,index) => { 
+    const changeOptionText = (e, id, index) => {
         optionDataBackup[index] = { ...optionDataBackup[index], option: e.target.value }
         setOptionData(optionDataBackup);
     }
@@ -53,7 +48,7 @@ const AddQuestion = (props) => {
     const remove = (temp) => {
         let removed = backup.filter(one => one.key !== temp)
         let removedData = optionDataBackup.filter(one => one.id !== temp)
-        
+
         backup = removed.slice();
         optionDataBackup = removedData.slice();
 
@@ -64,17 +59,17 @@ const AddQuestion = (props) => {
                     {...option.props}
                     optionNumber={index}
                     type={option.props.type}
-                    
+
                 />
             )
         })
-        
+
         setOptionList(edited);
         setOptionData(optionDataBackup);
     }
 
     /////////////////////////////////////////////////////////
-    
+
     ////////////////////////////////////////////////////////
     //---- use states
 
@@ -93,7 +88,7 @@ const AddQuestion = (props) => {
     const [topicList, setTopicList] = useState(null);
 
     //------- for  Question Type
-    const [questionType, setQuestionType] = useState(()=>'MULTIPLE CHOICE');
+    const [questionType, setQuestionType] = useState(() => 'MULTIPLE CHOICE');
 
     //------ for  Question Level
     const [diffLevel, setDiffLevel] = useState('Medium');
@@ -120,7 +115,7 @@ const AddQuestion = (props) => {
     const difficultyRef = useRef();
     const rightMarkRef = useRef();
     const wrongMarkRef = useRef();
-    
+
 
 
     //------- end 
@@ -135,10 +130,6 @@ const AddQuestion = (props) => {
 
     //-- end
     //////////////////////////////////////////////////////////
-
-
-
-
 
     //////////////////////////////////////////////////////////
     //add new Option
@@ -159,7 +150,7 @@ const AddQuestion = (props) => {
         tempData.push(newObj);
         optionDataBackup.push(newObj);
 
-        let a =<Option
+        let a = <Option
             key={key}
             id={key}
             type={questionType}
@@ -167,7 +158,7 @@ const AddQuestion = (props) => {
             remove={remove}
             changeOptionData={changeOptionData}
             changeOptionText={changeOptionText}
-    />
+        />
         temp.push(a);
         backup.push(a);
 
@@ -193,8 +184,13 @@ const AddQuestion = (props) => {
                 />)
             i++;
         }
-        
-        optionDataBackup = optionData.map((one, index) => {
+
+        let tempOption = [
+            { option: "", isCorrect: false, richTextEditor: false },
+            { option: "", isCorrect: false, richTextEditor: false }
+        ]
+
+        optionDataBackup = tempOption.map((one, index) => {
             return ({
                 ...one, id: temp[index].key
             })
@@ -225,19 +221,34 @@ const AddQuestion = (props) => {
         let obj = {
             diffLevel: diffLevel,
             options: optionData.map(one => {
-                return{option:one.option,isCorrect:one.isCorrect,richTextEditor:one.richTextEditor}
+                return { option: one.option, isCorrect: one.isCorrect, richTextEditor: one.richTextEditor }
             }),
             questionText: questionText.current.value,
             rightMarks,
             wrongMarks,
             type: questionType,
             subject: subjectId,
-            topic:topicId,
+            topic: topicId,
         }
         // console.log(obj);
-        postQuestions('/questions', obj);
-     }
-    
+        const postRequest = async () => {
+            let res = await postQuestions('/questions', obj);
+            if (res.status === 200 && res.statusText === 'OK') {
+                toast.success('Question Added Succesfully', {
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                });
+                questionText.current.value = '';
+                setOptionList(() => callTwice());
+            }
+        }
+        postRequest();
+    }
+
     //for render list when it add one element or remove element from it
     useEffect(() => {
         if (optionList != null) {
@@ -336,7 +347,7 @@ const AddQuestion = (props) => {
                                         subjectList :
                                         <option disabled>no item Found</option>}
                                 </select>
-                                <div className="form-text text-danger">{subjectRef.current?(subjectRef.current.value==='ttss'?'*Subject is required':<span>&nbsp;</span>):''}</div>
+                                <div className="form-text text-danger">{subjectRef.current ? (subjectRef.current.value === 'ttss' ? '*Subject is required' : <span>&nbsp;</span>) : ''}</div>
 
                             </div>
 
@@ -347,9 +358,9 @@ const AddQuestion = (props) => {
                                     defaultValue={'ttst'}
                                     ref={topicRef}
                                     onChange={(e) => {
-                                     
+
                                         setTopicId(e.target.value)
-                                     }
+                                    }
                                     }
                                 >
                                     <option value="ttst" style={{ display: 'none' }}>type to search Topic</option>
@@ -362,7 +373,7 @@ const AddQuestion = (props) => {
                                             <option disabled>select subject first</option>
                                     }
                                 </select>
-                                <div className="form-text text-danger">{topicRef.current?(topicRef.current.value==='ttst'?'*topic is required':<span>&nbsp;</span>):''}</div>
+                                <div className="form-text text-danger">{topicRef.current ? (topicRef.current.value === 'ttst' ? '*topic is required' : <span>&nbsp;</span>) : ''}</div>
                             </div>
                         </div>
 
@@ -407,7 +418,7 @@ const AddQuestion = (props) => {
                                     onChange={(e) => {
                                         setRightMarks(Number(e.target.value))
                                     }}
-                                    ref={rightMarkRef }
+                                    ref={rightMarkRef}
                                 />
                             </div>
                             <div className="col-3 mb-3">
@@ -431,7 +442,7 @@ const AddQuestion = (props) => {
                                     <textarea
                                         className="form-control"
                                         placeholder="Question"
-                                        style={{ height: "100px"}}
+                                        style={{ height: "100px" }}
                                         ref={questionText}
                                     ></textarea>
                                     <label className="form-label text-dark">Question</label>
@@ -463,6 +474,7 @@ const AddQuestion = (props) => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     )
 }

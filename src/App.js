@@ -27,7 +27,7 @@ const App = () => {
                     
                     <Route exact path="/questions/add" element={<AddQuestion toggleNavbar={handleNavbar} />}></Route>
                     
-                    <Route path="/questions/edit/:id" element={<EditQuestion />}></Route>
+                    <Route path="/questions/edit/:id" element={<EditQuestion toggleNavbar={handleNavbar} />}></Route>
                 </Routes>
                 <Footer />
             </Router>

@@ -1,9 +1,13 @@
 /* eslint-disable array-callback-return */
 import React, { useState, useEffect } from 'react'
-import { questionsAPI,deleteQuestion } from '../Service/Service'
+import { questionsAPI, deleteQuestion } from '../Service/Service'
 import QuestionMenu from '../QuestionMenu/QuestionMenu'
 import PerQuestion from '../PerQuestion/PerQuestion'
 import { useNavigate } from 'react-router-dom'
+
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 async function getQuestions(topicID) {
@@ -16,9 +20,6 @@ async function getQuestions(topicID) {
 
 //main function
 const Questions = () => {
-
-    
-
 
     let navigate = useNavigate();
     ///////////////////////////////////////////////////////////
@@ -37,12 +38,46 @@ const Questions = () => {
     //--- for searching questions
     const [findQuestion, setFindQuestion] = useState(() => '');
     ///////////////////////////////////////////////////////////
-    const deleteFun = (id,topic) => {
-        deleteQuestion(`questions/${id}`);
+    //----------- Edit Fun
+    const editFun = (id) => {
+        navigate(`/questions/edit/${id}`)
     }
-    
+
+
+
+    //----------- Delete Fun
+    const deleteFun = (id) => {
+        deleteQuestion(`questions/${id}`);
+        setLoading(true);
+
+        const get = async () => {
+            const response = await getQuestions(topicID);
+            setQuestions(response.result);
+            setTotalCount(response.totalCount)
+            setLoading(false);
+            setCurrentPage(1)
+
+            toast.success('Question Deleted Successfully.', {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+        }
+        get()
+
+    }
+
     const renderQuestion = (currentQuestion) => {
-        return currentQuestion.map((data, index) => <PerQuestion key={index} data={data} deleteFun={deleteFun} />)
+        return currentQuestion.map((data, index) => <PerQuestion
+            key={index}
+            data={data}
+            deleteFun={deleteFun}
+            editFun={editFun}
+        />)
     }
     ///////////////////////////////////////////////////////////
     //-- pagination start
@@ -109,7 +144,7 @@ const Questions = () => {
             setMinPageLimit(minPageLimit + pageNumberLimit);
         }
     }
-    //---/pagination End
+    //---/pagination EndK9Z-FBC
     ///////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////
@@ -285,8 +320,8 @@ const Questions = () => {
                                     </nav >
                                 </div>
                             </div>
+                            <ToastContainer />
                         </>
-
                     }
 
                 </div>
