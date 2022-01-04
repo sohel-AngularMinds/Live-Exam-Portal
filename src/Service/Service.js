@@ -1,6 +1,6 @@
 import api from './api'
 
-let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQwOTI0Njg2LCJleHAiOjE2NDA5Njc4ODZ9.ZOtmYQGYvP0j5l6fYOu9grsWM7iEv45B8yfeKhbttjw'
+let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQxMTc3ODU5LCJleHAiOjE2NDEyMjEwNTl9.akqs5wT3c3hOJyciafA7P8ANfdEHmIbWpiFqcK4Zkgs'
 
 export const subjectAPI = async (url) => {  
     const response = await api.get(url, {
@@ -20,4 +20,25 @@ export const questionsAPI = async(url) => {
         }
     });
    return response.data;
+}
+
+export const postQuestions = async (url,object)=>{
+    // http://admin.liveexamcenter.in/api/questions
+    const response = await api.post(url, object,{
+        headers: {
+            Authorization: token,
+            'content-type': "application/json; charset=utf-8"
+        }
+    })
+    console.log(response);
+}
+
+export  const deleteQuestion = async(url) => {
+    const response = await api.delete(url,{
+        headers: {
+            Authorization: token,
+            'content-type': "application/json; charset=utf-8"
+        }
+    });
+    console.log(response);
 }

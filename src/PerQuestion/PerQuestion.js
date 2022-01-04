@@ -3,7 +3,7 @@ import React from 'react'
 
 
 //--- htmlFor option edit delete
-const operation = () => {
+const operation = (_id,deleteFun,topic) => {
 
     return (
         <div className="d-inline-flex gap-2 py-2 point">
@@ -13,14 +13,25 @@ const operation = () => {
             </div>
             <div className="align-middle ">
                 <span><i className='bx bxs-trash text-muted'></i></span>
-                <span className='text-muted'>  Delete</span>
+                <span
+                    className='text-muted'
+                    onClick={() => {
+
+                        let res=window.confirm("Are you sure you want to delete this Question ??");
+                        if (res)
+                            deleteFun(_id, topic);
+                        else
+                            return;
+                    }}    
+                >Delete</span>
             </div>
         </div>
     )
 }
 
 const PerQuestion = (props) => {
-    const { type, options, questionText } = props.data;
+    const { type, options, questionText, _id,topic } = props.data;
+    const {deleteFun}=props
 
     const setOptions = (type, options) => {
         let inputType = type === "MULTIPLE RESPONSE" ? 'checkbox' : 'radio'
@@ -59,7 +70,7 @@ const PerQuestion = (props) => {
                     <br />
 
                     {setOptions(type, options)}
-                    {operation()}
+                    {operation(_id,deleteFun,topic)}
                 </div>
             </form>
         </div>

@@ -19,17 +19,19 @@ const QuestionMenu = (props) => {
     const getSubjectTopicOption = () => {
         if (topics) {
             let localStore = JSON.parse(localStorage.getItem('_topicId'));
-            let temp = topics.result.map(oneResult =>
-                <option
-                    key={oneResult._id}
-                    value={oneResult._id}
-                >
-                    {oneResult.name}
-                </option>
-            )
-            // setTopicsOption(temp)
-            localStorage.setItem("_itemperpage", itemPerPage);
-            getTopicForQuestionLoad(localStore?localStore.topic:temp[0].props.id, itemPerPage)
+            if (localStore) {
+                let temp = topics.result.map(oneResult =>
+                    <option
+                        key={oneResult._id}
+                        value={oneResult._id}
+                    >
+                        {oneResult.name}
+                    </option>
+                )
+                // setTopicsOption(temp)
+                localStorage.setItem("_itemperpage", itemPerPage);
+                getTopicForQuestionLoad(localStore?localStore.topic:temp[0].props.id, itemPerPage)    
+            }
         }
     }
 
@@ -119,7 +121,7 @@ const QuestionMenu = (props) => {
                                     onChange={getOption}
                                     placeholder="choose Option"
                                     ref={topicRef}
-                                    value={JSON.parse(localStorage.getItem('_topicId')).topic}
+                                    value={localStorage.getItem('_topicId')?JSON.parse(localStorage.getItem('_topicId')).topic:''}
                                 >
                                     {
                                         topics?topics.result.map(oneResult =>

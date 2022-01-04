@@ -1,47 +1,80 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Option from '../Option/Option'
-import { subjectAPI } from '../Service/Service'
+import { subjectAPI,postQuestions } from '../Service/Service'
 
 let backup = [];
 let optionDataBackup = [];
 
-
 const AddQuestion = (props) => {
-
     // for option Data
-    const [optionData, setOptionData] = useState([{ option: "", isCorrect: false, richTextEditor: false }, { option: "", isCorrect: false, richTextEditor: false }])
+    const [optionData, setOptionData] = useState([
+        { option: "", isCorrect: false, richTextEditor: false },
+        { option: "", isCorrect: false, richTextEditor: false }
+    ])
 
     /////////////////////////////////////////////////////////
     // functions passed as props to other component
-    const remove = (temp) => {
+    
+    ////--------- Manages Option Data of Data List
+    const changeOptionData = (key,type) => {
+        if (type !== 'MULTIPLE RESPONSE')
+        {
+            // setSelectedOption(key);
+            optionDataBackup = optionDataBackup.map((oneObj, index) => {
+                if(oneObj.id!==key) 
+                {   
+                    oneObj.isCorrect = false;
+                }
+                else {
+                    oneObj.isCorrect = true;
+                }
+                return oneObj;
+            })
+            setOptionData(optionDataBackup);
+        }
+        else
+        {
+            optionDataBackup = optionDataBackup.map((oneObj, index) => {
+                if(oneObj.id===key) 
+                {   
+                    oneObj.isCorrect = !Boolean(oneObj.isCorrect);
+                }
+                return oneObj;
+            })
+            setOptionData(optionDataBackup);
+        }
+    }
 
+    const changeOptionText = (e, id,index) => { 
+        optionDataBackup[index] = { ...optionDataBackup[index], option: e.target.value }
+        setOptionData(optionDataBackup);
+    }
+
+    const remove = (temp) => {
         let removed = backup.filter(one => one.key !== temp)
+        let removedData = optionDataBackup.filter(one => one.id !== temp)
+        
         backup = removed.slice();
+        optionDataBackup = removedData.slice();
 
         let edited = removed.map((option, index) => {
             return (
                 <Option key={option.key}
                     id={option.key}
+                    {...option.props}
                     optionNumber={index}
-                    remove={option.props.remove}
                     type={option.props.type}
-                    addOptionData={option.props.addOptionData}
+                    
                 />
             )
         })
-        setOptionList(edited)
-    }
-
-    ////--------- Manages Option Data of Data List
-    const getOptionData = (object) => {
-        // let temp = optionData.slice();
-        // temp[index] = object;
-        // console.log(temp);
-        console.log(object);
-        setOptionData(object);
+        
+        setOptionList(edited);
+        setOptionData(optionDataBackup);
     }
 
     /////////////////////////////////////////////////////////
+    
     ////////////////////////////////////////////////////////
     //---- use states
 
@@ -60,7 +93,7 @@ const AddQuestion = (props) => {
     const [topicList, setTopicList] = useState(null);
 
     //------- for  Question Type
-    const [questionType, setQuestionType] = useState('MULTIPLE CHOICE');
+    const [questionType, setQuestionType] = useState(()=>'MULTIPLE CHOICE');
 
     //------ for  Question Level
     const [diffLevel, setDiffLevel] = useState('Medium');
@@ -74,14 +107,20 @@ const AddQuestion = (props) => {
     //------ for question text
     const questionText = useRef();
 
-
-
-
     // for option Array of option
     const [optionList, setOptionList] = useState(() => callTwice());
     const [showOptionList, setShowOptionList] = useState(null);
 
 
+
+    //typeRef
+    const subjectRef = useRef();
+    const topicRef = useRef();
+    const questionTypeRef = useRef();
+    const difficultyRef = useRef();
+    const rightMarkRef = useRef();
+    const wrongMarkRef = useRef();
+    
 
 
     //------- end 
@@ -120,16 +159,15 @@ const AddQuestion = (props) => {
         tempData.push(newObj);
         optionDataBackup.push(newObj);
 
-        // console.log(optionDataBackup);
-
-        let a = <Option key={key}
+        let a =<Option
+            key={key}
             id={key}
             type={questionType}
             optionNumber={temp.length}
             remove={remove}
-            addOptionData={getOptionData}
-            optionData={optionDataBackup}
-        />
+            changeOptionData={changeOptionData}
+            changeOptionText={changeOptionText}
+    />
         temp.push(a);
         backup.push(a);
 
@@ -141,8 +179,6 @@ const AddQuestion = (props) => {
     function callTwice() {
         let i = 0;
         let temp = [];
-
-
         while (i < 2) {
             let key = `key${new Date().getTime() + (temp.length * 10)}`
             temp.push(
@@ -152,26 +188,17 @@ const AddQuestion = (props) => {
                     type={questionType}
                     optionNumber={i}
                     remove={remove}
-                    addOptionData={getOptionData}
+                    changeOptionData={changeOptionData}
+                    changeOptionText={changeOptionText}
                 />)
             i++;
         }
-
-
+        
         optionDataBackup = optionData.map((one, index) => {
             return ({
                 ...one, id: temp[index].key
             })
         });
-
-
-        temp = temp.map((oneObj) => {
-            return (
-                {
-                    ...oneObj, props: { ...oneObj.props, optionData: optionDataBackup }
-                }
-            )
-        })
 
         backup = temp.slice();
         setOptionData(optionDataBackup);
@@ -182,22 +209,35 @@ const AddQuestion = (props) => {
 
 
     //--- sets option type when user change 
-    //type of question to one to another
+    //change type of question one to another
     const setOptionType = (e) => {
         setQuestionType(e.target.value);
         let temp = optionList.map(option => {
             return ({ ...option, props: { ...option.props, type: e.target.value } })
         })
+        backup = temp;
         setOptionList(temp);
     }
 
     //--- gets option Data
-
     function onSubmit() {
-        console.log(optionData);
-    }
-
-
+        // console.log(subjectRef.current.value!=='ttss');
+        let obj = {
+            diffLevel: diffLevel,
+            options: optionData.map(one => {
+                return{option:one.option,isCorrect:one.isCorrect,richTextEditor:one.richTextEditor}
+            }),
+            questionText: questionText.current.value,
+            rightMarks,
+            wrongMarks,
+            type: questionType,
+            subject: subjectId,
+            topic:topicId,
+        }
+        // console.log(obj);
+        postQuestions('/questions', obj);
+     }
+    
     //for render list when it add one element or remove element from it
     useEffect(() => {
         if (optionList != null) {
@@ -281,7 +321,10 @@ const AddQuestion = (props) => {
                                 <select
                                     className="form-select"
                                     defaultValue={'ttss'}
-                                    onChange={(e) => setSubjectId(e.target.value)}
+                                    onChange={(e) => {
+                                        setSubjectId(e.target.value)
+                                    }}
+                                    ref={subjectRef}
                                 >
                                     <option
                                         value="ttss"
@@ -289,9 +332,12 @@ const AddQuestion = (props) => {
                                     >
                                         type to search Subject
                                     </option>
-                                    {subjectList}
+                                    {subjectList ?
+                                        subjectList :
+                                        <option disabled>no item Found</option>}
                                 </select>
-                                <div className="form-text text-danger">*Subject is required</div>
+                                <div className="form-text text-danger">{subjectRef.current?(subjectRef.current.value==='ttss'?'*Subject is required':<span>&nbsp;</span>):''}</div>
+
                             </div>
 
                             <div className="col-6 mb-3">
@@ -299,7 +345,12 @@ const AddQuestion = (props) => {
                                 <select
                                     className="form-select"
                                     defaultValue={'ttst'}
-                                    onChange={(e) => setTopicId(e.target.value)}
+                                    ref={topicRef}
+                                    onChange={(e) => {
+                                     
+                                        setTopicId(e.target.value)
+                                     }
+                                    }
                                 >
                                     <option value="ttst" style={{ display: 'none' }}>type to search Topic</option>
                                     {
@@ -311,8 +362,7 @@ const AddQuestion = (props) => {
                                             <option disabled>select subject first</option>
                                     }
                                 </select>
-
-                                <div className="form-text text-danger">*Topic is required</div>
+                                <div className="form-text text-danger">{topicRef.current?(topicRef.current.value==='ttst'?'*topic is required':<span>&nbsp;</span>):''}</div>
                             </div>
                         </div>
 
@@ -324,9 +374,10 @@ const AddQuestion = (props) => {
                                     defaultValue={questionType}
                                     name="questionType"
                                     onChange={setOptionType}
+                                    ref={questionTypeRef}
                                 >
                                     <option value="MULTIPLE CHOICE">MULTIPLE CHOICE</option>
-                                    <option value="MULTIPLE OPTIONS">MULTIPLE OPTIONS</option>
+                                    <option value="MULTIPLE RESPONSE">MULTIPLE RESPONSE</option>
                                     <option value="FILL IN BLANKS">FILL IN BLANKS</option>
                                 </select>
                             </div>
@@ -340,6 +391,7 @@ const AddQuestion = (props) => {
                                     onChange={(e) => {
                                         setDiffLevel(e.target.value);
                                     }}
+                                    ref={difficultyRef}
                                 >
                                     <option value="Easy">Easy</option>
                                     <option value="Medium">Medium</option>
@@ -355,6 +407,7 @@ const AddQuestion = (props) => {
                                     onChange={(e) => {
                                         setRightMarks(Number(e.target.value))
                                     }}
+                                    ref={rightMarkRef }
                                 />
                             </div>
                             <div className="col-3 mb-3">
@@ -366,6 +419,7 @@ const AddQuestion = (props) => {
                                     onChange={(e) => {
                                         setWrongMarks(Number(e.target.value))
                                     }}
+                                    ref={wrongMarkRef}
                                 />
                             </div>
                         </div>
@@ -377,7 +431,7 @@ const AddQuestion = (props) => {
                                     <textarea
                                         className="form-control"
                                         placeholder="Question"
-                                        style={{ height: "100px" }}
+                                        style={{ height: "100px"}}
                                         ref={questionText}
                                     ></textarea>
                                     <label className="form-label text-dark">Question</label>

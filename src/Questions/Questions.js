@@ -1,6 +1,6 @@
 /* eslint-disable array-callback-return */
 import React, { useState, useEffect } from 'react'
-import { questionsAPI } from '../Service/Service'
+import { questionsAPI,deleteQuestion } from '../Service/Service'
 import QuestionMenu from '../QuestionMenu/QuestionMenu'
 import PerQuestion from '../PerQuestion/PerQuestion'
 import { useNavigate } from 'react-router-dom'
@@ -11,13 +11,15 @@ async function getQuestions(topicID) {
     return await questionsAPI(url);
 }
 
-const renderQuestion = (currentQuestion) => {
-    return currentQuestion.map((data, index) => <PerQuestion key={index} data={data} />)
-}
+
 
 
 //main function
 const Questions = () => {
+
+    
+
+
     let navigate = useNavigate();
     ///////////////////////////////////////////////////////////
 
@@ -35,7 +37,13 @@ const Questions = () => {
     //--- for searching questions
     const [findQuestion, setFindQuestion] = useState(() => '');
     ///////////////////////////////////////////////////////////
-
+    const deleteFun = (id,topic) => {
+        deleteQuestion(`questions/${id}`);
+    }
+    
+    const renderQuestion = (currentQuestion) => {
+        return currentQuestion.map((data, index) => <PerQuestion key={index} data={data} deleteFun={deleteFun} />)
+    }
     ///////////////////////////////////////////////////////////
     //-- pagination start
     const [currentPage, setCurrentPage] = useState(1);
