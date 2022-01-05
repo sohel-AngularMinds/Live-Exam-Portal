@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { questionsAPI } from '../Service/Service'
-
-
+import Option from '../Option/Option';
+import { questionsAPI, subjectAPI } from '../Service/Service'
 
 
 const EditQuestion = (props) => {
-
+    
+    
     const { id } = useParams();
 
     const [loading, setLoading] = useState(true);
@@ -60,27 +60,105 @@ const EditQuestion = (props) => {
     const rightMarkRef = useRef();
     const wrongMarkRef = useRef();
 
-
+    //--------- minimizig and maximazing screen size
     const changeFullScreenMode = () => {
         let temp = !fullScreen;
         setFullScreen(temp);
         props.toggleNavbar(temp);
     }
 
-    useEffect(() => {
 
+    const remove = (id) => {
+        let temp = optionData.filter((one) => one._id !== id)
+        setOptionData(temp);
+    }
+
+    const changeOptionData = (key,type) => {
+        if (type === 'MULTIPLE RESPONSE')
+        {
+            setOptionData(optionData.map((one) => {
+                if (one._id === key)
+                {
+                    one.isCorrect=!one.isCorrect;
+                }
+                return one
+            }))
+        }
+        else
+        {
+            setOptionData(optionData.map((one) => { 
+                if (one._id === key)
+                {
+                    one.isCorrect=true;
+                }
+                else
+                {
+                    one.isCorrect=false;
+                }
+                return one;
+            }))
+            
+        }
+    }
+
+    const changeOptionText = (e,id,index) => {
+        let temp = optionData.slice();
+        temp[index] = { ...temp[index], option: e.target.value }
+        setOptionData(temp);
+    }
+
+
+      //add new Option
+const addNewOption = () => {
+        let temp = optionList.slice();
+        let tempData = optionData.slice();
+        let key = `key${new Date().getTime() + (temp.length * 10)}`
+        let newObj = {
+            option: "",
+            isCorrect: false,
+            richTextEditor: false,
+            _id: key
+        }
+        tempData.push(newObj);
+        // optionDataBackup.push(newObj);
+        let a = <Option
+            id={key}
+            key={key} 
+            data={newObj}
+            type={questionType}
+             optionNumber={temp.length}
+             remove={remove}
+             changeOptionData={changeOptionData}
+             changeOptionText={changeOptionText}
+          />    
+    temp.push(a);        
+    setOptionList(prev=>temp)
+    setOptionData(prev => tempData);
+        // setShowOptionList(prev => temp);
+    }
+    const onUpdate = () => {
+        
+    }
+
+
+
+    //////////////////////////////////////////////////////////
+
+//----------------------------------------use Effects----------------------------//
+    useEffect(() => {
         try {
             let url = `/questions/${id}`
 
             async function get() {
                 const res = await questionsAPI(url);
                 if (res) {
-                    // console.log(res);
                     setDefaultValues(res);
                     setQuestionType(res.type);
                     setDiffLevel(res.diffLevel);
                     setRightMarks(res.rightMarks);
                     setWrongMarks(res.wrongMarks);
+                    setSubjectId(res.subject._id);
+                    setOptionData(res.options);
                 }
 
                 const response = await questionsAPI('/subjects?term=');
@@ -93,7 +171,6 @@ const EditQuestion = (props) => {
                     </option>
                 )
                 setSubjectList(temp)
-
                 setLoading(false);
             }
             get();
@@ -101,33 +178,81 @@ const EditQuestion = (props) => {
         catch (e) {
 
         }
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+     //after changing the subjectd
+     useEffect(() => {
+        if (subjectId) {
+            let url = "/topics/subject/" + subjectId
+            const get = async () => {
+                const response = await subjectAPI(url);
+                setTopicList(
+                    response.map(res => {
+                        return (
+                            <option key={res._id} value={res._id}>
+                                {res.name}
+                            </option>
+                        )
+                    })
+                )
+            }
+            get();
+        }
+     }, [subjectId])
+    
+    
+    useEffect(() => { 
+        if (optionData)
+        {
+            let temp = optionData.map((one,index) => { 
+                return (
+                    <Option 
+                        key={one._id} 
+                        id={one._id}
+                        data={one}
+                        type={questionType}
+                        optionNumber={index}
+                        remove={remove}
+                        changeOptionData={changeOptionData}
+                        changeOptionText={changeOptionText}
+                    />
+                )
+            });
+            setOptionList(temp);
+            setShowOptionList(temp);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[optionData,questionType])
+    
+
+
+    
+    //----------------------------------------end useEffect----------------------------//
+    
     if (loading) {
         return (
-            <div class="d-flex justify-content-center align-items-center my-5 gap-2 " style={{height:"70vh"}}>
-                <div class="spinner-grow text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+            <div className="d-flex justify-content-center align-items-center my-5 gap-2 " style={{height:"70vh"}}>
+                <div className="spinner-grow text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
-                <div class="spinner-grow text-secondary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div className="spinner-grow text-secondary" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
-                <div class="spinner-grow text-success" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div className="spinner-grow text-success" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
-                <div class="spinner-grow text-danger" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div className="spinner-grow text-danger" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
-                <div class="spinner-grow text-warning" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div className="spinner-grow text-warning" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
-                <div class="spinner-grow text-info" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div className="spinner-grow text-info" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
-                <div class="spinner-grow text-dark" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                <div className="spinner-grow text-dark" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
             </div>
         )
@@ -204,6 +329,7 @@ const EditQuestion = (props) => {
                                         defaultValue={questionType}
                                         name="questionType"
                                         ref={questionTypeRef}
+                                        onChange={(e)=>setQuestionType(e.target.value)}
                                     >
                                         <option value="MULTIPLE CHOICE">MULTIPLE CHOICE</option>
                                         <option value="MULTIPLE RESPONSE">MULTIPLE RESPONSE</option>
@@ -260,7 +386,8 @@ const EditQuestion = (props) => {
                                         <textarea
                                             className="form-control"
                                             placeholder="Question"
-                                            style={{ height: "100px" }}
+                                            defaultValue={defaultValues.questionText}
+                                            style={{ height: "170px" }}
                                             ref={questionText}
                                         ></textarea>
                                         <label className="form-label text-dark">Question</label>
@@ -278,6 +405,9 @@ const EditQuestion = (props) => {
                                 <button
                                     type="button"
                                     className="btn text-primary"
+                                    onClick={() => { 
+                                        addNewOption();
+                                    }}
                                 >
                                     + Add Option
                                 </button>
@@ -286,15 +416,17 @@ const EditQuestion = (props) => {
                     </div>
                     <div className="card-header gap-2">
                         <div className="my-2">
-                            <button type="submit" className="btn btn-primary mx-2" >Update Question</button>
+                            <button
+                                type="submit"
+                                className="btn btn-primary mx-2"
+                                onClick={()=>onUpdate()}
+                            >Update Question</button>
                             <button type="button" className="btn mx-2"> Cancel </button>
                         </div>
                     </div>
                 </div>
             </div>
         )
-
-
     }
 
 }

@@ -155,6 +155,7 @@ const AddQuestion = (props) => {
             id={key}
             type={questionType}
             optionNumber={temp.length}
+            data={tempData}
             remove={remove}
             changeOptionData={changeOptionData}
             changeOptionText={changeOptionText}
@@ -170,6 +171,12 @@ const AddQuestion = (props) => {
     function callTwice() {
         let i = 0;
         let temp = [];
+
+        let tempOption = [
+            { option: "", isCorrect: false, richTextEditor: false },
+            { option: "", isCorrect: false, richTextEditor: false }
+        ]
+
         while (i < 2) {
             let key = `key${new Date().getTime() + (temp.length * 10)}`
             temp.push(
@@ -178,17 +185,13 @@ const AddQuestion = (props) => {
                     id={key}
                     type={questionType}
                     optionNumber={i}
+                    data={tempOption}
                     remove={remove}
                     changeOptionData={changeOptionData}
                     changeOptionText={changeOptionText}
                 />)
             i++;
         }
-
-        let tempOption = [
-            { option: "", isCorrect: false, richTextEditor: false },
-            { option: "", isCorrect: false, richTextEditor: false }
-        ]
 
         optionDataBackup = tempOption.map((one, index) => {
             return ({

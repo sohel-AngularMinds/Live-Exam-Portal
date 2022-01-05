@@ -1,11 +1,9 @@
 import React from 'react'
 
 const Option = (props) => {
-    let { id, optionNumber,type,remove,changeOptionData,changeOptionText } = props
-    
-
+    let { id, optionNumber, type, remove, changeOptionData, changeOptionText, data } = props
     return (
-        <div className="col-12 mb-3" >
+        <div className="col-12 mb-3">
             <div className="input-group">
                 <span className={`input-group-text align-baseline gap-2 ${type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'}`}>
                     <span className="">
@@ -15,7 +13,10 @@ const Option = (props) => {
                             name={type === 'MULTIPLE RESPONSE' ? `check${optionNumber + 1}` : 'isCorrect'}
                             id={id}
                             value={id}  
-                            onChange={()=>changeOptionData(id,type)}
+                            defaultChecked={data.isCorrect?true:false}
+                            onChange={() => {
+                                changeOptionData(id, type)
+                            }}
                         />
                     </span>
                     <span className="mt-2">
@@ -26,7 +27,10 @@ const Option = (props) => {
                     className="form-control"
                     aria-label="With textarea"
                     name="option"
-                    onChange={(e)=>changeOptionText(e,id,optionNumber)}                
+                    defaultValue={data !== 'undefined' ? data.option : ''}
+                    onChange={(e) => { 
+                        changeOptionText(e, id, optionNumber);
+                    }}                
                 ></textarea>
             </div>
 
