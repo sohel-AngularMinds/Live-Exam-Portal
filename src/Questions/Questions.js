@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { WavePlaceholder } from '../Placeholder/Loading'
 
 async function getQuestions(topicID) {
     let url = `questions?page=1&limit=&term=&topic=${topicID}`
@@ -20,10 +20,8 @@ async function getQuestions(topicID) {
 
 //main function
 const Questions = () => {
-
     let navigate = useNavigate();
     ///////////////////////////////////////////////////////////
-
     //use State
     const [topicID, setTopicID] = useState(null);
     const [questions, setQuestions] = useState([]);
@@ -47,28 +45,48 @@ const Questions = () => {
 
     //----------- Delete Fun
     const deleteFun = (id) => {
-        deleteQuestion(`questions/${id}`);
         setLoading(true);
 
-        const get = async () => {
-            const response = await getQuestions(topicID);
-            setQuestions(response.result);
-            setTotalCount(response.totalCount)
-            setLoading(false);
-            setCurrentPage(1)
+        async function deleteQue() {
+            try {
+                const get = async () => {
+                    const response = await getQuestions(topicID);
+                    setQuestions(response.result);
+                    setTotalCount(response.totalCount)
+                    setCurrentPage(1)
+                    setLoading(false);
 
-            toast.success('Question Deleted Successfully.', {
-                position: "bottom-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
+                    toast.success('Question Deleted Successfully.', {
+                        position: "bottom-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                    });
+                }
+
+                let res = await deleteQuestion(`questions/${id}`);
+                if (res.status === 200 || res.status === 204) {
+                    get();
+                }
+                else {
+                    setLoading(false);
+                    toast.error('Question Not Deleted', {
+                        position: "bottom-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                    });
+                }
+            }
+            catch (err) { }
         }
-        get()
-
+        deleteQue();
     }
 
     const renderQuestion = (currentQuestion) => {
@@ -99,7 +117,7 @@ const Questions = () => {
     const indexOfLastItem = currentPage * itemPerPage;
     const indexOfFirstItem = indexOfLastItem - itemPerPage;
 
-    const currentItem = questions.slice(indexOfFirstItem, indexOfLastItem);
+    let currentItem = questions.slice(indexOfFirstItem, indexOfLastItem);
 
     const handlePagination = (e) => {
         setCurrentPage(Number(e.target.id))
@@ -144,23 +162,22 @@ const Questions = () => {
             setMinPageLimit(minPageLimit + pageNumberLimit);
         }
     }
-    //---/pagination EndK9Z-FBC
+    //---/pagination End
     ///////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////
     //service
 
     const getKeywordForSearchQuestion = (keyword) => {
-        let temp = keyword
-        setFindQuestion(temp);
+        setFindQuestion(keyword);
         setLoading(true);
     }
 
     const getTopicForQuestionLoad = (topic, IPP) => {
+        setTopicID(topic);
         setLimit(Number(IPP));
         setItemPerPage(Number(IPP))
         setCurrentPage(1);
-        setTopicID(topic);
         setLoading(true);
     }
     ///////////////////////////////////////////////////////////
@@ -169,15 +186,7 @@ const Questions = () => {
     //use effect
     useEffect(() => {
         try {
-            const get = async () => {
-                const response = await getQuestions(topicID);
-                setQuestions(response.result);
-                setTotalCount(response.totalCount)
-                setLoading(false);
-                setCurrentPage(1)
-            }
-
-            if (findQuestion !== '') {
+            if (topicID !== null && findQuestion !== '') {
                 const getQText = async () => {
                     const response = await getQuestions(topicID);
                     let temp = response.result.filter(one => {
@@ -188,27 +197,32 @@ const Questions = () => {
                     setTotalCount(temp.length);
                     setLoading(false);
                 }
-                if (topicID) {
-                    getQText()
-                }
+                getQText()
             }
             else {
-                if (topicID) {
+                const get = async () => {
+                    const response = await getQuestions(topicID);
+                    setQuestions(response.result);
+                    setTotalCount(response.totalCount)
+                    setLoading(false);
+                    setCurrentPage(1)
+                }
+                if (topicID !== null) {
                     get();
                 }
+
             }
         }
         catch (e) {
             console.log(e);
         }
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [topicID, findQuestion])
 
 
     useEffect(() => {
-        if (topicID) {
-            try {
+        try {
+            if (topicID !== null) {
                 const get = async () => {
                     const response = await getQuestions(topicID);
                     setMaxPageLimit(Math.ceil(response.result.length / limit));
@@ -218,10 +232,11 @@ const Questions = () => {
                 setItemPerPage(limit)
                 setCurrentPage(1)
             }
-            catch (e) {
-
-            }
         }
+        catch (e) {
+
+        }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [limit])
 
@@ -273,26 +288,22 @@ const Questions = () => {
             </div>
 
             <div className="card">
-                <div className="card-body">
+                <div className="card-header bg-white">
                     <QuestionMenu getTopicForQuestionLoad={getTopicForQuestionLoad} getKeywordForSearchQuestion={getKeywordForSearchQuestion} />
-
+                </div>
+                <div className="card-body">
                     {loading ?
-                        <div className="text-center text-primary" >
-                            <div className="spinner-border" role="status">
-                                <span className="visually-hidden">Loading...</span>
-                            </div>
-                        </div >
+                        <WavePlaceholder />
                         :
-                        <>
+                        <div>
                             {/* {questions} */
                                 renderQuestion(currentItem)
                             }
-                            <div className="mt-5 d-flex justify-content-between align-middle">
+                            <div className="d-flex justify-content-between align-middle card-footer p-2">
                                 <div className="align-middle mt-2">
                                     <h6 className="text-muted point">Showing {indexOfFirstItem + 1} to {limit < totalCount ? limit : totalCount} of {totalCount} entries</h6>
                                 </div>
                                 <div>
-
                                     <nav aria-label="Page navigation example">
                                         <ul className="pagination justify-content-end">
                                             <li
@@ -320,10 +331,10 @@ const Questions = () => {
                                     </nav >
                                 </div>
                             </div>
-                            <ToastContainer />
-                        </>
-                    }
 
+                        </div>
+                    }
+                    <ToastContainer />
                 </div>
             </div>
         </div >

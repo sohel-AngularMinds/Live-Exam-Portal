@@ -1,7 +1,7 @@
 import React from 'react'
 
 const Option = (props) => {
-    let { id, optionNumber, type, remove, changeOptionData, changeOptionText, data } = props
+    let { id, optionNumber, type, remove, changeOptionData, changeOptionText, data, errorText } = props
     return (
         <div className="col-12 mb-3">
             <div className="input-group">
@@ -12,8 +12,8 @@ const Option = (props) => {
                             type={type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'}
                             name={type === 'MULTIPLE RESPONSE' ? `check${optionNumber + 1}` : 'isCorrect'}
                             id={id}
-                            value={id}  
-                            defaultChecked={data.isCorrect?true:false}
+                            value={id}
+                            defaultChecked={data.isCorrect ? true : false}
                             onChange={() => {
                                 changeOptionData(id, type)
                             }}
@@ -28,28 +28,32 @@ const Option = (props) => {
                     aria-label="With textarea"
                     name="option"
                     defaultValue={data !== 'undefined' ? data.option : ''}
-                    onChange={(e) => { 
+                    onChange={(e) => {
                         changeOptionText(e, id, optionNumber);
-                    }}                
+                    }}
                 ></textarea>
             </div>
+            {errorText ?
+                <div className="form-text text-danger">
+                    {errorText}
+                </div> :
+                <div className="point">
+                    <span
+                        className="form-text"
+                        onClick={() => remove(id)}
+                    >
+                        Remove Option
+                    </span>
+                    <span className="form-text"> | </span>
 
-            <div className="point">
-                <span
-                    className="form-text"
-                    onClick={()=>remove(id)}
-                >
-                    Remove Option
-                </span>
-                <span className="form-text"> | </span>
-
-                <span
-                    className="form-text"
-                    id={optionNumber}
-                >
-                    Enable Rich Text Editor
-                </span>
-            </div>
+                    <span
+                        className="form-text"
+                        id={optionNumber}
+                    >
+                        Enable Rich Text Editor
+                    </span>
+                </div>
+            }
         </div>
     )
 }

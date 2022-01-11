@@ -30,7 +30,8 @@ const QuestionMenu = (props) => {
                 )
                 // setTopicsOption(temp)
                 localStorage.setItem("_itemperpage", itemPerPage);
-                getTopicForQuestionLoad(localStore?localStore.topic:temp[0].props.id, itemPerPage)    
+                let topicId = localStore ? localStore.topic : temp[0].props.id
+                getTopicForQuestionLoad(topicId, itemPerPage)    
             }
         }
     }

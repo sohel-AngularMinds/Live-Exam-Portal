@@ -1,6 +1,6 @@
 import api from './api'
 
-let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQxMzU2ODU4LCJleHAiOjE2NDE0MDAwNTh9.M80mOmS7JWkUfSXkSTFOvyv30kcIvq-ECLQFiKDxPMo'
+let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQxNzg3MjI5LCJleHAiOjE2NDE4MzA0Mjl9.ZfQr1EIoIHrD__Ft1Me9kPgwU7w3iVA4SzxgqBia08s'
 
 let header = {
     headers: {
@@ -34,7 +34,8 @@ export const postQuestions = async (url,object)=>{
 }
 
 //update Old Question
-export const putQuestion = async (url,object) => {
-    const response = await api.put(url, object,)
+export const putQuestion = async (url, object) => {
+    //http://admin.liveexamcenter.in/api/questions/61d67a93e6d7d77c8e4eb037
+    const response = await api.put(url, object,header)
     return response;
 }
