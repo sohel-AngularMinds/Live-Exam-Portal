@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+
 import { toast } from 'react-toastify';
 import Option from '../Option/Option';
 import { GrowingSpinner } from '../Placeholder/Loading';
 import { questionsAPI, subjectAPI, putQuestion } from '../Service/Service'
+import { finalValidation } from '../Validation/Validate';
 
+let errorBackup = {};
 
 const EditQuestion = (props) => {
     let navigate = useNavigate();
@@ -13,6 +16,11 @@ const EditQuestion = (props) => {
 
     const [loading, setLoading] = useState(() => true);
     const [loadingButton, setLoadingButton] = useState(() => false);
+
+    //------------for setting error object
+    const [error, setError] = useState({});
+    //-------- for option Error message
+    const [optionError, setOptionError] = useState(() => []);
 
     const [optionData, setOptionData] = useState(() => [])
     //for fullscreen mode
@@ -77,16 +85,38 @@ const EditQuestion = (props) => {
     }
 
     const changeOptionData = (key, type) => {
+
+        function checkTrue(acc, current) {
+            if (current.isCorrect === true)
+                ++acc;
+            return acc;
+        }
+
         if (type === 'MULTIPLE RESPONSE') {
-            setOptionData(optionData.map((one) => {
+            let trueCounter = 0;
+            let temp = optionData.map((one) => {
                 if (one._id === key) {
                     one.isCorrect = !one.isCorrect;
                 }
                 return one
-            }))
+            })
+
+
+            //----checks error 
+            trueCounter = temp.reduce(checkTrue, trueCounter);
+            let newError;
+            if (trueCounter === 0) {
+                newError = { ...errorBackup, zeroOption: "Please select at least 1 option" }
+            }
+            else {
+                newError = { ...errorBackup, zeroOption: null }
+            }
+            errorBackup = newError;
+            setError(newError);
+            setOptionData(temp);
         }
         else {
-            setOptionData(optionData.map((one) => {
+            let temp = optionData.map((one) => {
                 if (one._id === key) {
                     one.isCorrect = true;
                 }
@@ -94,8 +124,21 @@ const EditQuestion = (props) => {
                     one.isCorrect = false;
                 }
                 return one;
-            }))
+            })
 
+            //for checking errors
+            let trueCounter = 0;
+            trueCounter = temp.reduce(checkTrue, trueCounter);
+            let newError;
+            if (trueCounter === 0) {
+                newError = { ...errorBackup, zeroOption: "Please select at least 1 option" }
+            }
+            else {
+                newError = { ...errorBackup, zeroOption: null }
+            }
+            errorBackup = newError;
+            setError(newError);
+            setOptionData(temp)
         }
     }
 
@@ -103,6 +146,37 @@ const EditQuestion = (props) => {
         let temp = optionData.slice();
         temp[index] = { ...temp[index], option: e.target.value }
         setOptionData(temp);
+
+        //------- for error checking code
+        let optionErr = temp.map((one) => {
+            if (one.option === '' || one.option == null) {
+                return 'option is required'
+            }
+            return '';
+        })
+        let newError = {}
+        let found = false;
+        // check same or not
+        for (let i = 0; i < temp.length - 1; i++) {
+            for (let j = i + 1; j < temp.length; j++) {
+                if (temp[i].option === temp[j].option) {
+                    found = true;
+                }
+            }
+        }
+
+        if (found) {
+            newError = { ...errorBackup, sameElement: 'Duplicate options are not allowed.' };
+            found = false;
+        }
+        else {
+            newError = { ...errorBackup, sameElement: null };
+        }
+        errorBackup = newError;
+        newError = { ...errorBackup, optionErrorArray: optionErr };
+        setOptionError(optionErr);
+        setError(newError);
+        errorBackup = newError;
     }
 
 
@@ -118,21 +192,16 @@ const EditQuestion = (props) => {
             _id: key
         }
         tempData.push(newObj);
-        setOptionData(prev => tempData);   
+        setOptionData(prev => tempData);
     }
-    const onUpdate = () => {
-        setLoadingButton(true);
 
-        
 
+    const onUpdate = (e) => {
+        e.preventDefault();
         let obj = {
             diffLevel: diffLevel,
             options: optionData.map(one => {
-                return {
-                    option: one.option,
-                    isCorrect: one.isCorrect,
-                    richTextEditor: one.hasOwnProperty('richTextEditor') ? one.richTextEditor : false
-                }
+                return { option: one.option, isCorrect: one.isCorrect, richTextEditor: one.richTextEditor }
             }),
             questionText: questionText.current.value,
             rightMarks,
@@ -141,24 +210,59 @@ const EditQuestion = (props) => {
             subject: subjectId,
             topic: topicId,
         }
+
+        //-----calls function and get error object if any have in file
+        let newError = finalValidation(obj, setOptionError);
+        errorBackup = newError;
+
+
+        //if error object contain optionErrorArray with no error message
+        //if no any error message then we delete the property
+        if (newError.hasOwnProperty('optionErrorArray')) {
+            let count = 0;
+            count = newError.optionErrorArray.reduce((count, current) => {
+                if (current !== '')
+                    ++count;
+                return count;
+            }, count)
+            if (count === 0)
+                delete newError.optionErrorArray
+        }
+
         
-        // console.log(obj);
+        if (Object.keys(newError).length > 0) {
+            setError(newError)
+            //for focus
+            let allRef = [subjectRef, topicRef, questionTypeRef, difficultyRef, rightMarkRef, wrongMarkRef, questionText];
+            let properties = ['subject', 'topic', 'type', 'diffLevel', 'rightMark', 'wrongMark', 'questionText'];
+
+            for (let i = 0; i < properties.length; i++) {
+                if (newError.hasOwnProperty(properties[i])) {
+                    allRef[i].current.focus()
+                    return;
+                }
+            }
+            return
+        }
+
+        setLoadingButton(true);
 
         const putQue = async () => {
             const res = await putQuestion(`/questions/${id}`, obj);
-            
-            if (res.status === 200 || res.status === 204) {
+
+            if (res.status === 200 || res.status === 204) {//res.ok==true or false
+
                 toast.success('Question updated successfully ', {
                     position: "bottom-right",
-                    autoClose: 5000,
+                    autoClose: 2000,
                     hideProgressBar: false,
                     closeOnClick: true,
                     pauseOnHover: true,
                     draggable: true,
                     progress: undefined,
                 });
-                
-                navigate('/questions/default');
+
+                window.setTimeout(navigate('/questions/default'), 3000);
             }
             else {
                 toast.error('Something happened please try again', {
@@ -172,13 +276,27 @@ const EditQuestion = (props) => {
                 });
             }
         }
-        let timeOut = window.setTimeout(putQue(), 2000);
+        let timeOut = window.setTimeout(putQue(), 1800);
         clearTimeout(timeOut);
     }
 
 
 
     //////////////////////////////////////////////////////////
+    /*****************************************--Checking Error--********************************************/
+
+    //questionText
+    const checkError = (e) => {
+        let newError;
+        if (e.target.value === "" || e.target.value == null) {
+            newError = { ...error, questionText: "Don't let it empty it is mandatory" }
+        }
+        else {
+            newError = { ...error, questionText: null }
+        }
+        errorBackup = newError;
+        setError(newError);
+    }
 
     //----------------------------------------use Effects----------------------------//
     useEffect(() => {
@@ -255,6 +373,7 @@ const EditQuestion = (props) => {
                         remove={remove}
                         changeOptionData={changeOptionData}
                         changeOptionText={changeOptionText}
+                        errorText={optionError[index]}
                     />
                 )
             });
@@ -263,6 +382,20 @@ const EditQuestion = (props) => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [optionData, questionType])
+
+
+    //we set here perticular option error message
+    useEffect(() => {
+        if (optionError.length > 0) {
+            let temp = optionList.map((one, index) => {
+                return {
+                    ...one, props: { ...one.props, errorText: optionError[index] }
+                };
+            })
+            setOptionList(temp)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [optionError])
 
     //----------------------------------------end useEffect----------------------------//
     return (
@@ -295,17 +428,23 @@ const EditQuestion = (props) => {
                                             <select
                                                 className="form-select"
                                                 defaultValue={defaultValues ? defaultValues.subject._id : 'ttss'}
+                                                ref={subjectRef}
                                                 onChange={(e) => {
                                                     setSubjectId(e.target.value)
+                                                    //for changing error after the selecting some subject
+                                                    let newError = { ...errorBackup, subject: null };
+                                                    errorBackup = newError;
+                                                    setError(newError);
                                                 }}
-                                                ref={subjectRef}
+
                                             >
                                                 {subjectList ?
                                                     subjectList :
                                                     <option disabled>no item Found</option>}
                                             </select>
-                                            <div className="form-text text-danger">{subjectRef.current ? (subjectRef.current.value === 'ttss' ? '*Subject is required' : <span>&nbsp;</span>) : ''}</div>
-
+                                            <div className="form-text text-danger">
+                                                {error ? error.subject : <div>&nbsp;&nbsp;<br /></div>}
+                                            </div>
                                         </div>
 
                                         <div className="col-6 mb-3">
@@ -316,8 +455,11 @@ const EditQuestion = (props) => {
                                                 ref={topicRef}
                                                 onChange={(e) => {
                                                     setTopicId(e.target.value)
-                                                }
-                                                }
+                                                    //for changing error after the selecting some subject
+                                                    let newError = { ...errorBackup, topic: null }
+                                                    errorBackup = newError;
+                                                    setError(newError)
+                                                }}
                                             >
                                                 {
                                                     topicList ?
@@ -328,7 +470,9 @@ const EditQuestion = (props) => {
                                                         <option disabled>select subject first</option>
                                                 }
                                             </select>
-                                            <div className="form-text text-danger">{topicRef.current ? (topicRef.current.value === 'ttst' ? '*topic is required' : <span>&nbsp;</span>) : ''}</div>
+                                            <div className="form-text text-danger">
+                                                {error ? error.topic : <div>&nbsp;&nbsp;<br /></div>}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -346,6 +490,10 @@ const EditQuestion = (props) => {
                                                 <option value="MULTIPLE RESPONSE">MULTIPLE RESPONSE</option>
                                                 <option value="FILL IN BLANKS">FILL IN BLANKS</option>
                                             </select>
+
+                                            <div className="form-text text-danger">
+                                                {error ? error.type : <div>&nbsp;&nbsp;<br /></div>}
+                                            </div>
                                         </div>
 
 
@@ -363,6 +511,9 @@ const EditQuestion = (props) => {
                                                 <option value="Medium">Medium</option>
                                                 <option value="Hard">Hard</option>
                                             </select>
+                                            <div className="form-text text-danger">
+                                                {error ? error.diffLevel : <div>&nbsp;&nbsp;<br /></div>}
+                                            </div>
                                         </div>
                                         <div className="col-3 mb-3">
                                             <label className="form-label">Right Mark</label>
@@ -370,11 +521,30 @@ const EditQuestion = (props) => {
                                                 type="text"
                                                 className="form-control"
                                                 value={rightMarks}
+                                                ref={rightMarkRef}
                                                 onChange={(e) => {
                                                     setRightMarks(Number(e.target.value))
+                                                    //error checking code
+                                                    let newError = {}
+                                                    if ((Number(e.target.value) !== '' || Number(e.target.value) !== 0) && Number(e.target.value) > 0) {
+                                                        if (e.target.value < wrongMarkRef.current.value) {
+                                                            newError = { ...errorBackup, rightMark: "right mark always greater than wrong mark" }
+                                                        }
+                                                        else {
+                                                            newError = { ...errorBackup, rightMark: null }
+                                                        }
+                                                        errorBackup = newError;
+                                                    }
+                                                    else {
+                                                        newError = { ...errorBackup, rightMark: "please provide proper Mark" }
+                                                        errorBackup = newError;
+                                                    }
+                                                    setError(errorBackup);
                                                 }}
-                                                ref={rightMarkRef}
                                             />
+                                            <div className="form-text text-danger">
+                                                {error ? error.rightMark : <div>&nbsp;&nbsp;<br /></div>}
+                                            </div>
                                         </div>
                                         <div className="col-3 mb-3">
                                             <label className="form-label">Wrong Mark</label>
@@ -382,11 +552,15 @@ const EditQuestion = (props) => {
                                                 type="text"
                                                 className="form-control"
                                                 value={wrongMarks}
+                                                ref={wrongMarkRef}
                                                 onChange={(e) => {
                                                     setWrongMarks(Number(e.target.value))
                                                 }}
-                                                ref={wrongMarkRef}
+
                                             />
+                                            <div className="form-text text-danger">
+                                                {error ? error.wrongMark : <div>&nbsp;&nbsp;<br /></div>}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -398,7 +572,12 @@ const EditQuestion = (props) => {
                                                     className="form-control"
                                                     placeholder="Question"
                                                     defaultValue={defaultValues.questionText}
-                                                    style={{ height: "170px" }}
+                                                    style={error ? (error.questionText ? {
+                                                        outline: "1px red solid",
+                                                        height: "150px", border: "1px solid red"
+                                                    } : { height: "150px" }) : { height: "150px" }}
+                                                    name="questionText"
+                                                    onChange={checkError}
                                                     ref={questionText}
                                                 ></textarea>
                                                 <label className="form-label text-dark">Question</label>
@@ -424,13 +603,20 @@ const EditQuestion = (props) => {
                                         </button>
                                     </div>
                                 </form>
+                                <div className="form-text text-danger">
+                                    {error ? error.zeroOption : <div>&nbsp;&nbsp;<br /></div>}
+                                </div>
+                                <div className="form-text text-danger">
+                                    {error ? error.sameElement : <div>&nbsp;&nbsp;<br /></div>}
+                                </div>
                             </div>
+
                             <div className="card-header gap-2">
                                 <div className="my-2">
                                     <button
                                         type="submit"
                                         className="btn btn-primary mx-2"
-                                        onClick={() => onUpdate()}
+                                        onClick={onUpdate}
                                     >
                                         {
                                             loadingButton ?

@@ -3,9 +3,10 @@
 
 
 export const WavePlaceholder = () => {
+    //glow
     return (
         <div className="row">
-            <div className="placeholder-wave">
+            <div className="placeholder-glow">
                 <div className="placeholder placeholder-lg col-12 bg-secondary"></div>
                 <div className="placeholder placeholder-lg col-12 bg-secondary"></div>
                 <div className="placeholder placeholder-lg col-12 bg-secondary"></div>

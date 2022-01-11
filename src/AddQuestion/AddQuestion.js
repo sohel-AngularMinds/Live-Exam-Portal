@@ -4,7 +4,9 @@ import { subjectAPI, postQuestions } from '../Service/Service'
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { finalValidation } from '../Validation/Validate';
 
+let errorBackup = {};
 const AddQuestion = (props) => {
     //for fullscreen mode
     const [fullScreen, setFullScreen] = useState(false);
@@ -13,6 +15,10 @@ const AddQuestion = (props) => {
     const [error, setError] = useState({});
     //-------- for option Error message
     const [optionError, setOptionError] = useState(() => []);
+    //------- for loading button nimation
+    const [loadingButton, setLoadingButton] = useState(() => false);
+
+
     //////////////////////////////////////////////////////////
     //-- start
     //on click toggle full screen
@@ -21,74 +27,30 @@ const AddQuestion = (props) => {
         setFullScreen(temp);
         props.toggleNavbar(temp);
     }
-
     //-- end
     //////////////////////////////////////////////////////////
-
-    //////////////////////////////////////////////////////////
-
-    //validation part
-    function finalValidation(obj) {
-
-        let newError = {}
-
-        if (obj.subject == null || obj.subject === 'ttss')
-            newError = { ...newError, subject: 'Please Select the subject it is necessary' }
-
-
-        if (obj.topic == null || obj.topic === 'ttst')
-            newError = { ...newError, topic: 'Please Select the topic it is necessary' }
-
-        if (obj.questionText === "" || obj.questionText == null)
-            newError = { ...newError, questionText: "Don't let it empty it is mandatory" }
-
-        if (obj.type === "" || obj.type == null)
-            newError = { ...newError, type: "type is required" }
-
-        if (obj.diffLevel === "" || obj.diffLevel == null)
-            newError = { ...newError, type: "Difficulty Level is required" }
-
-
-        if (obj.rightMarks === '' || obj.rightMarks === 0 || obj.rightMarks < 1)
-            newError = { ...newError, rightMark: "please provide proper Mark" }
-
-        if (obj.wrongMarks === '' || obj.wrongMarks < 0)
-            newError = { ...newError, wrongMark: "please provide proper Mark" }
-
-
-        if (obj.options.length >= 2) {
-            let optionErrorArray = [];
-            let trueValue = 0;
-
-            function checkOptionText(value, index) {
-                if (value.option === '' || value.option == null)
-                    optionErrorArray[index] = "option is required"
-                else
-                    optionErrorArray[index] = ""
-
-                // eslint-disable-next-line eqeqeq
-                if (value.isCorrect == true)
-                    ++trueValue;
-            }
-            obj.options.forEach(checkOptionText)
-            
-            newError = { ...newError, optionErrorArray: optionErrorArray }
-            setOptionError(optionErrorArray);
-
-            if (trueValue === 0) {
-                newError = { ...newError, zeroOption: "Please Select At-Least One Option" }
-            }
+    ////-------------- Inintial Value
+    function callTwice() {
+        let i = 0;
+        let temp = [];
+        while (i < 2) {
+            let key = `key${new Date().getTime() + (i * 10)}`
+            temp.push(
+                {
+                    _id: key,
+                    isCorrect: false,
+                    option: '',
+                    richTextEditor: false
+                }
+            )
+            i++;
         }
-        else {
-            newError = { ...newError, zeroOption: "Please Add At-Least Two Option " }
-        }
-
-        return newError;
+        return temp
     }
+    //////////////////////////////////////////////////////////
+    //------------Checking Error validation part
 
     //////////////////////////////////////////////////////////
-
-    console.log(error);
 
     // for option Data
     const [optionData, setOptionData] = useState(() => callTwice())
@@ -97,16 +59,38 @@ const AddQuestion = (props) => {
 
     ////--------- Manages Option Data of Data List
     const changeOptionData = (key, type) => {
-         if (type === 'MULTIPLE RESPONSE') {
-            setOptionData(optionData.map((one) => {
+
+        function checkTrue(acc, current) {
+            if (current.isCorrect === true)
+                ++acc;
+            return acc;
+        }
+
+        if (type === 'MULTIPLE RESPONSE') {
+            let trueCounter = 0;
+
+            let temp = optionData.map((one) => {
                 if (one._id === key) {
                     one.isCorrect = !one.isCorrect;
                 }
                 return one
-            }))
+            })
+
+            //----checks error 
+            trueCounter = temp.reduce(checkTrue, trueCounter);
+            let newError;
+            if (trueCounter === 0) {
+                newError = { ...errorBackup, zeroOption: "Please select at least 1 option" }
+            }
+            else {
+                newError = { ...errorBackup, zeroOption: null }
+            }
+            errorBackup = newError;
+            setError(newError);
+            setOptionData(temp);
         }
         else {
-            setOptionData(optionData.map((one) => {
+            let temp = optionData.map((one) => {
                 if (one._id === key) {
                     one.isCorrect = true;
                 }
@@ -114,7 +98,21 @@ const AddQuestion = (props) => {
                     one.isCorrect = false;
                 }
                 return one;
-            }))
+            })
+
+            let trueCounter = 0;
+
+            trueCounter = temp.reduce(checkTrue, trueCounter);
+            let newError;
+            if (trueCounter === 0) {
+                newError = { ...errorBackup, zeroOption: "Please select at least 1 option" }
+            }
+            else {
+                newError = { ...errorBackup, zeroOption: null }
+            }
+            errorBackup = newError;
+            setError(newError);
+            setOptionData(temp)
         }
     }
 
@@ -122,6 +120,38 @@ const AddQuestion = (props) => {
         let temp = optionData.slice();
         temp[index] = { ...temp[index], option: e.target.value }
         setOptionData(temp);
+
+        //------- for error checking code
+        let optionErr = temp.map((one) => {
+            if (one.option === '' || one.option == null) {
+                return 'option is required'
+            }
+            return '';
+        })
+        let newError = {}
+        let found = false;
+        // check same or not
+        for (let i = 0; i < temp.length - 1; i++) {
+            for (let j = i + 1; j < temp.length; j++) {
+                if (temp[i].option === temp[j].option) {
+                    found = true;
+                }
+            }
+        }
+
+        if (found) {
+            newError = { ...errorBackup, sameElement: 'Duplicate options are not allowed.' };
+            found = false;
+        }
+        else {
+            newError = { ...errorBackup, sameElement: '' };
+        }
+        
+        errorBackup = newError;
+        newError = { ...errorBackup, optionErrorArray: optionErr };
+        setOptionError(optionErr);
+        setError(newError);
+        errorBackup = newError;
     }
 
     const remove = (id) => {
@@ -133,8 +163,6 @@ const AddQuestion = (props) => {
 
     ////////////////////////////////////////////////////////
     //---- use states
-
-
     //--- for get SubjectId for gets respective topic from dataBase
     const [subjectId, setSubjectId] = useState(null);
     //---- for getting data of Subject
@@ -164,8 +192,6 @@ const AddQuestion = (props) => {
     const [optionList, setOptionList] = useState();
     const [showOptionList, setShowOptionList] = useState(null);
 
-
-
     //typeRef
     const subjectRef = useRef();
     const topicRef = useRef();
@@ -175,10 +201,8 @@ const AddQuestion = (props) => {
     const wrongMarkRef = useRef();
 
 
-
-    //------- end 
     //////////////////////////////////////////////////////////
-    //add new Option
+    //------------add new Option
     const addNewOption = () => {
         let temp = optionList.slice();
         let tempData = optionData.slice();
@@ -193,28 +217,9 @@ const AddQuestion = (props) => {
         setOptionData(prev => tempData);
     }
     //////////////////////////////////////////////////////////
-    ////-------------- Inintial Value
-    function callTwice() {
-        let i = 0;
-        let temp = [];
-        while (i < 2) {
-            let key = `key${new Date().getTime() + (temp.length * 10)}`
-            temp.push(
-                {
-                    _id:key,
-                    isCorrect: false,
-                    option: '',
-                    richTextEditor:false
-                }
-            )
-            i++;
-        }
-        return temp
-    }
+
 
     //////////////////////////////////////////////////////////
-
-
     //--- sets option type when user change 
     //change type of question one to another
     const setOptionType = (e) => {
@@ -225,7 +230,7 @@ const AddQuestion = (props) => {
         setOptionList(temp);
     }
 
-    //--- gets option Data
+    /***************************************-- Submitting question --**********************************************/
     function onSubmit(e) {
         e.preventDefault();
         let obj = {
@@ -241,13 +246,42 @@ const AddQuestion = (props) => {
             topic: topicId,
         }
 
-        let newError = finalValidation(obj);
-        // console.log(newError);
-        if (Object.keys(newError).length > 0) {
-            setError(newError)
-            return;
+        //-----calls function and get error object if any have in file
+        let newError = finalValidation(obj, setOptionError);
+        errorBackup = newError;
+
+
+        //if error object contain optionErrorArray with no error message
+        //if no any error message then we delete the property
+        if (newError.hasOwnProperty('optionErrorArray')) {
+            let count = 0;
+            count = newError.optionErrorArray.reduce((count, current) => {
+                if (current !== '')
+                    ++count;
+                return count;
+            }, count)
+            if (count === 0)
+                delete newError.optionErrorArray
         }
 
+        console.log(newError);
+
+        if (Object.keys(newError).length > 0) {
+            setError(newError)
+            //for focus
+            let allRef = [subjectRef, topicRef, questionTypeRef, difficultyRef, rightMarkRef, wrongMarkRef, questionText];
+            let properties = ['subject', 'topic', 'type', 'diffLevel', 'rightMark', 'wrongMark', 'questionText'];
+
+            for (let i = 0; i < properties.length; i++) {
+                if (newError.hasOwnProperty(properties[i])) {
+                    allRef[i].current.focus()
+                    return;
+                }
+            }
+            return
+        }
+
+        setLoadingButton(true);
         const postRequest = async () => {
             let res = await postQuestions('/questions', obj);
             if (res.status === 200 && res.statusText === 'OK') {
@@ -259,16 +293,32 @@ const AddQuestion = (props) => {
                     draggable: true,
                     progress: undefined,
                 });
+                setLoadingButton(false);
                 questionText.current.value = '';
-                setOptionList(() => callTwice());
+                setOptionData(() => callTwice());
             }
         }
-        postRequest();
+        let timeOut = window.setTimeout(postRequest(), 1800);
+        clearTimeout(timeOut);
     }
+    /*****************************************--Checking Error--********************************************/
 
-    //for error
+    //questionText
+    const checkError = (e) => {
+        let newError;
+        if (e.target.value === "" || e.target.value == null) {
+            newError = { ...error, questionText: "Don't let it empty it is mandatory" }
+        }
+        else {
+            newError = { ...error, questionText: null }
+        }
+        errorBackup = newError;
+        setError(newError);
+    }
+    /*************************************---Use Effects---*****************************************/
+
+    //we set here perticular option error message
     useEffect(() => {
-
         if (optionError.length > 0) {
             let temp = optionList.map((one, index) => {
                 return {
@@ -282,7 +332,7 @@ const AddQuestion = (props) => {
 
 
 
-    //render option data
+    //render option block
     useEffect(() => {
         if (optionData) {
             let temp = optionData.map((one, index) => {
@@ -296,6 +346,7 @@ const AddQuestion = (props) => {
                         remove={remove}
                         changeOptionData={changeOptionData}
                         changeOptionText={changeOptionText}
+                        errorText={optionError[index]}
                     />
                 )
             });
@@ -340,7 +391,6 @@ const AddQuestion = (props) => {
 
     //after changing the subjectd
     useEffect(() => {
-        //http://admin.liveexamcenter.in/api/topics/subject
         if (subjectId) {
             let url = "/topics/subject/" + subjectId
             const get = async () => {
@@ -388,10 +438,13 @@ const AddQuestion = (props) => {
                                     className="form-select"
                                     defaultValue={'ttss'}
                                     onChange={(e) => {
-                                        setSubjectId(e.target.value)
+                                        setSubjectId(e.target.value);
+                                        //for changing error after the selecting some subject
+                                        let newError = { ...errorBackup, subject: null };
+                                        errorBackup = newError;
+                                        setError(newError);
                                     }}
                                     ref={subjectRef}
-                                    required
                                 >
                                     <option
                                         value="ttss"
@@ -405,7 +458,7 @@ const AddQuestion = (props) => {
                                 </select>
 
                                 <div className="form-text text-danger">
-                                    {error.subject}
+                                    {error ? error.subject : <div>&nbsp;&nbsp;<br /></div>}
                                 </div>
                             </div>
 
@@ -417,8 +470,11 @@ const AddQuestion = (props) => {
                                     ref={topicRef}
                                     onChange={(e) => {
                                         setTopicId(e.target.value)
-                                    }
-                                    }
+                                        //for changing error after the selecting some subject
+                                        let newError = { ...errorBackup, topic: null }
+                                        errorBackup = newError;
+                                        setError(newError)
+                                    }}
                                 >
                                     <option value="ttst" style={{ display: 'none' }}>type to search Topic</option>
                                     {
@@ -432,7 +488,7 @@ const AddQuestion = (props) => {
                                 </select>
 
                                 <div className="form-text text-danger">
-                                    {error.topic}
+                                    {error ? error.topic : <div>&nbsp;&nbsp;<br /></div>}
                                 </div>
                             </div>
                         </div>
@@ -452,7 +508,7 @@ const AddQuestion = (props) => {
                                     <option value="FILL IN BLANKS">FILL IN BLANKS</option>
                                 </select>
                                 <div className="form-text text-danger">
-                                    {error.type}
+                                    {error ? error.type : <div>&nbsp;&nbsp;<br /></div>}
                                 </div>
                             </div>
 
@@ -472,7 +528,7 @@ const AddQuestion = (props) => {
                                     <option value="Hard">Hard</option>
                                 </select>
                                 <div className="form-text text-danger">
-                                    {error.diffLevel}
+                                    {error ? error.diffLevel : <div>&nbsp;&nbsp;<br /></div>}
                                 </div>
                             </div>
                             <div className="form-group col-3 mb-3">
@@ -481,13 +537,31 @@ const AddQuestion = (props) => {
                                     type="text"
                                     className="form-control"
                                     value={rightMarks}
+                                    ref={rightMarkRef}
                                     onChange={(e) => {
                                         setRightMarks(Number(e.target.value))
+
+                                        //error checking code
+                                        let newError = {}
+                                        if ((Number(e.target.value) !== '' || Number(e.target.value) !== 0) && Number(e.target.value) > 0) {
+                                            if (e.target.value < wrongMarkRef.current.value) {
+                                                newError = { ...errorBackup, rightMark: "right mark always greater than wrong mark" }
+                                            }
+                                            else {
+                                                newError = { ...errorBackup, rightMark: null }
+                                            }
+                                            errorBackup = newError;
+                                        }
+                                        else {
+                                            newError = { ...errorBackup, rightMark: "please provide proper Mark" }
+                                            errorBackup = newError;
+                                        }
+                                        setError(errorBackup);
                                     }}
-                                    ref={rightMarkRef}
+
                                 />
                                 <div className="form-text text-danger">
-                                    {error.rightMark}
+                                    {error ? error.rightMark : <div>&nbsp;&nbsp;<br /></div>}
                                 </div>
                             </div>
                             <div className="form-group col-3 mb-3">
@@ -496,13 +570,35 @@ const AddQuestion = (props) => {
                                     type="text"
                                     className="form-control"
                                     value={wrongMarks}
+                                    ref={wrongMarkRef}
                                     onChange={(e) => {
                                         setWrongMarks(Number(e.target.value))
+                                        let newError = {}
+                                        //error code
+                                        if (Number(e.target.value) === '' || Number(e.target.value) < 0) {
+                                            newError = { ...errorBackup, wrongMark: "please provide proper Mark" }
+                                            errorBackup = newError;
+                                        }
+                                        else {
+                                            newError = { ...errorBackup, wrongMark: null }
+                                            errorBackup = newError;
+                                            // errorBackup = newError;
+
+                                            if (Number(e.target.value) >= rightMarkRef.current.value) {
+                                                newError = { ...errorBackup, rightMark: "right mark always greater than wrong mark" }
+                                            }
+                                            else {
+                                                newError = { ...errorBackup, rightMark: null }
+
+                                            }
+                                            errorBackup = newError;
+                                            setError(errorBackup);
+                                        }
+
                                     }}
-                                    ref={wrongMarkRef}
                                 />
                                 <div className="form-text text-danger">
-                                    {error.wrongMark}
+                                    {error ? error.wrongMark : <div>&nbsp;&nbsp;<br /></div>}
                                 </div>
                             </div>
                         </div>
@@ -514,19 +610,19 @@ const AddQuestion = (props) => {
                                     <textarea
                                         className="form-control"
                                         placeholder="Question"
-                                        style={{ height: "100px" }}
-                                        ref={questionText}
-                                        required></textarea>
-                                    <label className="form-label text-dark">Question</label>
 
-                                    {error.questionText ?
-                                        <div className="form-text text-danger">
-                                            {error.questionText}
-                                        </div>
-                                        : <div className="form-text point">
-                                            Enable Rich Text Editor
-                                        </div>
-                                    }
+                                        style={error ? (error.questionText ? {
+                                            outline: "1px red solid",
+                                            height: "150px", border: "1px solid red"
+                                        } : { height: "150px" }) : { height: "150px" }}
+                                        name="questionText"
+                                        onChange={checkError}
+                                        ref={questionText}
+                                    ></textarea>
+                                    <label className="form-label text-dark">Question</label>
+                                    <div className="form-text point">
+                                        Enable Rich Text Editor
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -547,20 +643,31 @@ const AddQuestion = (props) => {
                         </div>
                     </form>
                     <div className="form-text text-danger">
-                        {error.zeroOption}
+                        {error ? error.zeroOption : <div>&nbsp;&nbsp;<br /></div>}
+                    </div>
+                    <div className="form-text text-danger">
+                        {error ? error.sameElement : <div>&nbsp;&nbsp;<br /></div>}
                     </div>
                 </div>
 
                 <div className="card-header gap-2">
                     <div className="my-2">
-                        <button type="submit" className="btn btn-primary mx-2" onClick={onSubmit}>Save Question</button>
+                        <button type="submit" className="btn btn-primary mx-2" onClick={onSubmit}>
+
+                            {
+                                loadingButton ?
+                                    <div className="spinner-border spinner-border-sm" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </div>
+                                    :
+                                    <>&nbsp;&nbsp;</>
+                            }
+                            &nbsp;
+                            Save Question
+                        </button>
                         <button type="button" className="btn mx-2"> Cancel </button>
                     </div>
                 </div>
-
-
-
-
             </div>
             <ToastContainer />
         </div>

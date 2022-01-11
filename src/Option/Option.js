@@ -3,7 +3,7 @@ import React from 'react'
 const Option = (props) => {
     let { id, optionNumber, type, remove, changeOptionData, changeOptionText, data, errorText } = props
     return (
-        <div className="col-12 mb-3">
+        <div className="col-12 my-2">
             <div className="input-group">
                 <span className={`input-group-text align-baseline gap-2 ${type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'}`}>
                     <span className="">
@@ -33,11 +33,7 @@ const Option = (props) => {
                     }}
                 ></textarea>
             </div>
-            {errorText ?
-                <div className="form-text text-danger">
-                    {errorText}
-                </div> :
-                <div className="point">
+            <div className="point">
                     <span
                         className="form-text"
                         onClick={() => remove(id)}
@@ -53,6 +49,11 @@ const Option = (props) => {
                         Enable Rich Text Editor
                     </span>
                 </div>
+            {
+                errorText ?
+                <div className="form-text text-danger">
+                    {errorText}
+                </div> : <div>&nbsp;&nbsp;<br/></div>
             }
         </div>
     )
