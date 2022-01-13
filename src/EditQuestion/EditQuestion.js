@@ -360,6 +360,20 @@ const EditQuestion = (props) => {
     }, [subjectId])
 
 
+    //we set here perticular option error message
+    useEffect(() => {
+        if (optionError.length > 0) {
+            let temp = optionList.map((one, index) => {
+                return {
+                    ...one, props: { ...one.props, errorText: optionError[index] }
+                };
+            })
+            setOptionList(temp);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [optionError])
+
+
     useEffect(() => {
         if (optionData) {
             let temp = optionData.map((one, index) => {
@@ -383,19 +397,13 @@ const EditQuestion = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [optionData, questionType])
 
-
-    //we set here perticular option error message
-    useEffect(() => {
-        if (optionError.length > 0) {
-            let temp = optionList.map((one, index) => {
-                return {
-                    ...one, props: { ...one.props, errorText: optionError[index] }
-                };
-            })
-            setOptionList(temp)
+    //////////
+     //for render list when it add one element or remove element from it
+     useEffect(() => {
+        if (optionList != null) {
+            setShowOptionList(optionList);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [optionError])
+    }, [optionList])
 
     //----------------------------------------end useEffect----------------------------//
     return (
@@ -630,7 +638,11 @@ const EditQuestion = (props) => {
                                         Update Question
 
                                     </button>
-                                    <button type="button" className="btn mx-2"> Cancel </button>
+                                    <button
+                                        type="button"
+                                        className="btn mx-2"
+                                        onClick={()=>navigate(-1)}
+                                    > Cancel </button>
                                 </div>
                             </div>
                         </>

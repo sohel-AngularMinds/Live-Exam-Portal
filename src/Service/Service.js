@@ -1,6 +1,7 @@
 import api from './api'
 
-let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQxODc2MTkwLCJleHAiOjE2NDE5MTkzOTB9.Xzps2iOuHn4q2n3wJAwbgA-dZBJI1K9Ba4yAzDxc8Sw'
+let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQxOTU0NTY1LCJleHAiOjE2NDE5OTc3NjV9.NWATpcwnoWyEQipgI_849gdUvKXhVZWzJKy8A-LEVS4'
+
 let header = {
     headers: {
         Authorization: token,

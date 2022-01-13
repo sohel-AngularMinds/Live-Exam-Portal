@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Option from '../Option/Option'
 import { subjectAPI, postQuestions } from '../Service/Service'
+import { useNavigate } from 'react-router-dom';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -8,6 +9,7 @@ import { finalValidation } from '../Validation/Validate';
 
 let errorBackup = {};
 const AddQuestion = (props) => {
+    let navigate = useNavigate();
     //for fullscreen mode
     const [fullScreen, setFullScreen] = useState(false);
     const [iconChange, setIconChange] = useState(false);
@@ -263,8 +265,6 @@ const AddQuestion = (props) => {
             if (count === 0)
                 delete newError.optionErrorArray
         }
-
-        console.log(newError);
 
         if (Object.keys(newError).length > 0) {
             setError(newError)
@@ -665,7 +665,11 @@ const AddQuestion = (props) => {
                             &nbsp;
                             Save Question
                         </button>
-                        <button type="button" className="btn mx-2"> Cancel </button>
+                        <button 
+                        type="button"
+                         className="btn mx-2"
+                         onClick={()=>navigate(-1)}
+                        > Cancel </button>
                     </div>
                 </div>
             </div>
