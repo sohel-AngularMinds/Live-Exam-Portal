@@ -295,10 +295,11 @@ const Questions = () => {
                     {loading ?
                         <WavePlaceholder />
                         :
-                        <div>
+                        <div >
                             {/* {questions} */
                                 renderQuestion(currentItem)
                             }
+                            {/* <div dangerouslySetInnerHTML={{ __html: }}></div> */}
                             <div className="d-flex justify-content-between align-middle card-footer p-2">
                                 <div className="align-middle mt-2">
                                     <h6 className="text-muted point">Showing {indexOfFirstItem + 1} to {limit < totalCount ? limit : totalCount} of {totalCount} entries</h6>

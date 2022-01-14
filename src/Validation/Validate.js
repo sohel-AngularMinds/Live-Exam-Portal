@@ -8,7 +8,7 @@ export function finalValidation(obj, setOptionError) {
     if (obj.topic == null || obj.topic === 'ttst')
         newError = { ...newError, topic: 'please Select the topic it is necessary' }
 
-    if (obj.questionText === "" || obj.questionText == null)
+    if (obj.questionText === "" || obj.questionText == null || obj.questionText==='\n')
         newError = { ...newError, questionText: "don't let it empty it is mandatory" }
 
     if (obj.type === "" || obj.type == null)

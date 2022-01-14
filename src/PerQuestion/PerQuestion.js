@@ -51,7 +51,7 @@ const PerQuestion = (props) => {
                             disabled={true}
                         />
                         <label className="form-check-label text-muted">
-                            {option}
+                            <div dangerouslySetInnerHTML={{ __html: option }} />
                         </label>
                     </div>
                 </React.Fragment>
@@ -67,7 +67,9 @@ const PerQuestion = (props) => {
                 <div>
                     <div>
                         <input className="form-check-input" type="checkbox" id="flexCheckDefault1" />
-                        <label className='text-dark ms-2' >{questionText}</label>
+                        <label className='text-dark ms-2' >
+                            <div dangerouslySetInnerHTML={{ __html: questionText }} />
+                        </label>
                     </div>
                     <br />
                     {setOptions(type, options)}
