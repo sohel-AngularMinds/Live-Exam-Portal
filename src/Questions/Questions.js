@@ -4,7 +4,7 @@ import { questionsAPI, deleteQuestion } from '../Service/Service'
 import QuestionMenu from '../QuestionMenu/QuestionMenu'
 import PerQuestion from '../PerQuestion/PerQuestion'
 import { useNavigate } from 'react-router-dom'
-
+import noItemFound from './img/no_item_found.jpg'
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -99,6 +99,8 @@ const Questions = () => {
             editFun={editFun}
         />)
     }
+
+
     ///////////////////////////////////////////////////////////
     //-- pagination start
     const [currentPage, setCurrentPage] = useState(1);
@@ -242,6 +244,7 @@ const Questions = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [limit])
 
+
     // useEffect(() => {
     //     try {
     //         if (findQuestion !== '') {
@@ -299,7 +302,12 @@ const Questions = () => {
                         :
                         <div >
                             {/* {questions} */
-                                renderQuestion(currentItem)
+                                currentItem.length > 0 ? renderQuestion(currentItem)
+                                    :
+                                    <div className="text-center">
+                                        <img src={noItemFound} alt="no_item_found" />
+                                        <h4 className="text-black-50 mb-5">No Item Found</h4>
+                                    </div>
                             }
                             {/* <div dangerouslySetInnerHTML={{ __html: }}></div> */}
                             <div className="d-flex justify-content-between align-middle card-footer p-2">

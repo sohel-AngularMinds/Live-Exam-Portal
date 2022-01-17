@@ -1,6 +1,9 @@
 import api from './api'
+import Cookies from 'js-cookie'
 
-let token = localStorage.getItem('auth_token');
+let token = Cookies.get('_token');
+
+// let token='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQyNDA3ODkzLCJleHAiOjE2NDI0NTEwOTN9.xMT9NarR-AcbTmDFTRrqcvEZxNardq9S-dNaMTiU2OM'
 
 let header = {
     headers: {

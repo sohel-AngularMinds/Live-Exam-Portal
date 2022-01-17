@@ -42,7 +42,7 @@ const PerQuestion = (props) => {
 
             return (
                 <React.Fragment key={_id}>
-                    <div className="form-check">
+                    <div className="ml-5">
                         <input className="form-check-input"
                             type={inputType}
                             name={inputType === 'radio' ? 'rdo' : `check${index}`}
@@ -63,19 +63,18 @@ const PerQuestion = (props) => {
 
     return (
         <div className="container p-0 m-0">
-            <form >
+            
                 <div>
-                    <div>
+                    <div className="ml-4">
                         <input className="form-check-input" type="checkbox" id="flexCheckDefault1" />
-                        <label className='text-dark ms-2' >
+                        <label className='text-dark' >
                             <div dangerouslySetInnerHTML={{ __html: questionText }} />
                         </label>
                     </div>
-                    <br />
                     {setOptions(type, options)}
                     {operation(_id, deleteFun, editFun, topic)}
                 </div>
-            </form>
+            
             <hr></hr>
         </div>
     )

@@ -46,26 +46,56 @@ const Option = (props) => {
                     </div>
                 </>
                 :
-                <div className="input-group">
-                    <span className={`input-group-text align-baseline gap-2 ${type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'}`}>
-                        <span className="">
-                            <input
-                                className="form-check-input"
-                                type={type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'}
-                                name={type === 'MULTIPLE RESPONSE' ? `check${optionNumber + 1}` : 'isCorrect'}
-                                id={id}
-                                value={id}
-                                defaultChecked={data.isCorrect ? true : false}
-                                onChange={() => {
-                                    changeOptionData(id, type)
-                                }}
-                            />
-                        </span>
-                        <span className="mt-2">
-                            <h6>Option {optionNumber + 1} </h6>
-                        </span>
-                    </span>
+                // <div className="input-group">
+                //     <span className={`input-group-text align-baseline gap-2 ${type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'} `}>
+                //         <span className="">
+                // <input
+                //     className="form-check-input"
+                //     type={type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'}
+                //     name={type === 'MULTIPLE RESPONSE' ? `check${optionNumber + 1}` : 'isCorrect'}
+                //     id={id}
+                //     value={id}
+                //     defaultChecked={data.isCorrect ? true : false}
+                //     onChange={() => {
+                //         changeOptionData(id, type)
+                //     }}
+                // />
+                //         </span>
+                //         <span className="">
+                //             <h6>Option {optionNumber + 1} </h6>
+                //         </span>
+                //     </span>
 
+                // <textarea
+                //     className="form-control"
+                //     aria-label="With textarea"
+                //     name="option"
+                //     defaultValue={data !== 'undefined' ? data.option : ''}
+                //     onChange={(e) => {
+                //         changeOptionText(e, id, optionNumber, 'ta');
+                //     }}
+                // ></textarea>
+                // </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text align-middle">
+                            <span className="mr-1">
+                                <input
+                                    type={type === 'MULTIPLE RESPONSE' ? 'checkbox' : 'radio'}
+                                    name={type === 'MULTIPLE RESPONSE' ? `check${optionNumber + 1}` : 'isCorrect'}
+                                    id={id}
+                                    value={id}
+                                    defaultChecked={data.isCorrect ? true : false}
+                                    onChange={() => {
+                                        changeOptionData(id, type)
+                                    }}
+                                />
+                            </span>
+                            <span className="mt-1">
+                                <h6>Option {optionNumber + 1} </h6>
+                            </span>
+                        </div>
+                    </div>
                     <textarea
                         className="form-control"
                         aria-label="With textarea"
@@ -77,10 +107,10 @@ const Option = (props) => {
                     ></textarea>
                 </div>
             }
-            
-            <div className="point d-inline-block">
+
+            <div className="point d-inline-flex">
                 <span
-                    className="form-text"
+                    className="form-text mr-1"
                     onClick={() => remove(id)}
                 >
                     Remove Option
@@ -88,7 +118,7 @@ const Option = (props) => {
                 <span className="form-text"> | </span>
 
                 <span
-                    className="form-text"
+                    className="form-text ml-1"
                     onClick={() => {
                         changerichTextEditor(id, data.richTextEditor)
                     }}
