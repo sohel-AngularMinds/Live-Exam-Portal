@@ -1,6 +1,6 @@
 import api from './api'
 
-let token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWMxYjhiZmU2ZDdkNzdjOGU0NzhhYjUiLCJfYWN0aXZlT3JnIjoiNjE5Y2U0YThlNTg2ODUxNDYxMGM4ZGE3IiwiaWF0IjoxNjQyMTMzOTE1LCJleHAiOjE2NDIxNzcxMTV9.ZWftHEax5mUeyVqZCrIYv_AZ1_X8G3v_qpa-mW9uyd8'
+let token = localStorage.getItem('auth_token');
 
 let header = {
     headers: {

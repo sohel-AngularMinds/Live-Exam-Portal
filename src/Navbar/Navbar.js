@@ -5,7 +5,7 @@ const Navbar = (props) => {
     const showStatus = props.showStatus;
     let navigate = useNavigate();
     return (
-        <div className={`container-fluid navbar-dark bg-dark ${showStatus?'hide':'show'}`}>
+        <div className={`container-fluid navbar-dark bg-dark ${showStatus ? 'hide' : 'show'}`}>
             <nav className="navbar navbar-expand-lg text-uppercase">
                 <div className="container">
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,7 +17,7 @@ const Navbar = (props) => {
                                 <span className="nav-link active"
                                     onClick={() => {
                                         navigate('/questions/default');
-                                }}
+                                    }}
                                 >Questions</span>
                             </li>
                             <li className="nav-item point">
@@ -26,8 +26,11 @@ const Navbar = (props) => {
                             <li className="nav-item point">
                                 <span className="nav-link">Topics</span>
                             </li>
+                            <li className="nav-item point float-end">
+                                <span className="nav-link">Logout</span>
+                            </li>
                         </ul>
-                    </div> 
+                    </div>
                 </div>
             </nav>
         </div>

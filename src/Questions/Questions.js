@@ -49,6 +49,7 @@ const Questions = () => {
 
         async function deleteQue() {
             try {
+                //arrow function
                 const get = async () => {
                     const response = await getQuestions(topicID);
                     setQuestions(response.result);
@@ -86,6 +87,7 @@ const Questions = () => {
             }
             catch (err) { }
         }
+
         deleteQue();
     }
 

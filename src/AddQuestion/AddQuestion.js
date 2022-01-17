@@ -9,19 +9,27 @@ import { finalValidation } from '../Validation/Validate';
 import RichTextEditor from '../RichTextEditor/RichTextEditor';
 
 let errorBackup = {};
+
 const AddQuestion = (props) => {
     let navigate = useNavigate();
     //for fullscreen mode
     const [fullScreen, setFullScreen] = useState(false);
     const [iconChange, setIconChange] = useState(false);
     //------------for setting error object
-    const [error, setError] = useState({});
+    const [error, setError] = useState({
+        textError: false
+    });
     //-------- for option Error message
     const [optionError, setOptionError] = useState(() => []);
     //------- for loading button nimation
     const [loadingButton, setLoadingButton] = useState(() => false);
+
+    
     //------- rich text editor reference
     const [refernce, setRefernce] = useState(() => null);
+
+    // rich text option data refernce
+    // const [optionReference, setOptionReference] = useState(() => '');
 
 
     //////////////////////////////////////////////////////////
@@ -62,22 +70,8 @@ const AddQuestion = (props) => {
     /////////////////////////////////////////////////////////
     // functions passed as props to other component
 
-    const changerichTextEditor = (key, value) => {
-        let temp = optionData.map((one) => {
-            if (one._id === key) {
-                one.richTextEditor = !value;
-            }
-            return one
-        })
-        setOptionData(temp);
-    }
 
-    //---- functions passed as props to other component
 
-    const changeRichTextEditorOptionData = (key) => {
-        console.log(key);
-
-    }
     ////--------- Manages Option Data of Data List
     const changeOptionData = (key, type) => {
 
@@ -137,19 +131,36 @@ const AddQuestion = (props) => {
         }
     }
 
-    const changeOptionText = (e, id, index) => {
-        let temp = optionData.slice();
-        temp[index] = { ...temp[index], option: e.target.value }
+    const changerichTextEditor = (key, value) => {
+        
+        let temp = optionData.map((one) => {
+            if (one._id === key) {
+                one.richTextEditor = !value;
+            }
+            return one
+        })
         setOptionData(temp);
+    }
+
+    const changeRichOptionText = (value,index) => {
+        let temp = optionData.slice();
+        if (value === '<p><br></p>')
+            value='';
+
+        temp[index] = { ...temp[index], option: value };
+        setOptionData(temp);
+
+
+        let newError = {}
 
         //------- for error checking code
         let optionErr = temp.map((one) => {
-            if (one.option === '' || one.option == null) {
+            if (one.option === '' || one.option == null || one.option === '\n' || one.option === '<p><br/></p>') {
                 return 'option is required'
             }
             return '';
         })
-        let newError = {}
+        
         let found = false;
         // check same or not
         for (let i = 0; i < temp.length - 1; i++) {
@@ -174,6 +185,54 @@ const AddQuestion = (props) => {
         setError(newError);
         errorBackup = newError;
     }
+
+    const changeOptionText = (e, id, index) => {
+
+        let temp = optionData.slice();
+        temp[index] = { ...temp[index], option: e.target.value }
+        setOptionData(temp);
+
+        let newError = {}
+
+        //------- for error checking code
+        let optionErr = temp.map((one) => {
+            if (one.option === '' || one.option == null || one.option === '\n' || one.option === '<p><br/></p>') {
+                return 'option is required'
+            }
+            return '';
+        })
+        
+        let found = false;
+        // check same or not
+        for (let i = 0; i < temp.length - 1; i++) {
+            for (let j = i + 1; j < temp.length; j++) {
+                if (temp[i].option === temp[j].option) {
+                    found = true;
+                }
+            }
+        }
+
+        if (found) {
+            newError = { ...errorBackup, sameElement: 'Duplicate options are not allowed.' };
+            found = false;
+        }
+        else {
+            newError = { ...errorBackup, sameElement: '' };
+        }
+
+        errorBackup = newError;
+        newError = { ...errorBackup, optionErrorArray: optionErr };
+        setOptionError(optionErr);
+        setError(newError);
+        errorBackup = newError;
+    }
+
+
+
+
+
+
+
 
     const remove = (id) => {
         let temp = optionData.filter((one) => one._id !== id)
@@ -222,6 +281,7 @@ const AddQuestion = (props) => {
     const difficultyRef = useRef();
     const rightMarkRef = useRef();
     const wrongMarkRef = useRef();
+
     const questionText = useRef();
 
     //////////////////////////////////////////////////////////
@@ -237,7 +297,7 @@ const AddQuestion = (props) => {
             _id: key
         }
         tempData.push(newObj);
-        setOptionData(prev => tempData);
+        setOptionData(prev => prev = tempData);
     }
     //////////////////////////////////////////////////////////
 
@@ -263,7 +323,7 @@ const AddQuestion = (props) => {
             options: optionData.map(one => {
                 return { option: one.option, isCorrect: one.isCorrect, richTextEditor: one.richTextEditor }
             }),
-            questionText: richTextEditor ? (temp.getText()!=='\n'?temp.getHTML():'\n') : questionText.current.value,
+            questionText: richTextEditor ? (temp.getText() !== '\n' ? temp.getHTML() : '\n') : questionText.current.value,
             rightMarks,
             wrongMarks,
             type: questionType,
@@ -310,7 +370,6 @@ const AddQuestion = (props) => {
             return
         }
 
-        console.log(obj);
 
         setLoadingButton(true);
         const postRequest = async () => {
@@ -332,8 +391,8 @@ const AddQuestion = (props) => {
                 setOptionData(() => callTwice());
             }
         }
-        // let timeOut = window.setTimeout(postRequest(), 1800);
-        // clearTimeout(timeOut);
+        let timeOut = window.setTimeout(postRequest(), 1800);
+        clearTimeout(timeOut);
     }
     /*****************************************--Checking Error--********************************************/
 
@@ -341,7 +400,20 @@ const AddQuestion = (props) => {
     const checkError = (value) => {
         setQuestionTexts(value);
         let newError;
-        if (value === "" || value == null) {
+        if (value === "" || value == null || value === '\n') {
+            newError = { ...error, questionText: "Don't let it empty it is mandatory", textError: true }
+        }
+        else {
+            newError = { ...error, questionText: null, textError: false }
+        }
+        errorBackup = newError;
+        setError(newError);
+    }
+
+    const checkQuestionRichTextEditor = (refernceOfRichText, text) => {
+        setRefernce(refernceOfRichText);
+        let newError;
+        if (text === "" || text == null || text === "<p><br></p>" || text === '\n') {
             newError = { ...error, questionText: "Don't let it empty it is mandatory" }
         }
         else {
@@ -349,10 +421,6 @@ const AddQuestion = (props) => {
         }
         errorBackup = newError;
         setError(newError);
-    }
-
-    const checkQuestionRichTextEditor = (refernceOfRichText) => {
-        setRefernce(refernceOfRichText);
     }
     /*************************************---Use Effects---*****************************************/
 
@@ -387,6 +455,7 @@ const AddQuestion = (props) => {
                         changeOptionText={changeOptionText}
                         //for rich text editor
                         changerichTextEditor={changerichTextEditor}
+                        changeRichOptionText={changeRichOptionText}
                         errorText={optionError[index]}
                     />
                 )
@@ -579,9 +648,13 @@ const AddQuestion = (props) => {
                                     className="form-control"
                                     value={rightMarks}
                                     ref={rightMarkRef}
+                                    placeholder="Enter Marks"
                                     onChange={(e) => {
-                                        setRightMarks(Number(e.target.value))
-
+                                        //for getting only number input from user
+                                        const re = /^[0-9\b]+$/;
+                                        if (e.target.value === '' || re.test(e.target.value)) {
+                                            setRightMarks(e.target.value)
+                                        }
                                         //error checking code
                                         let newError = {}
                                         if ((Number(e.target.value) !== '' || Number(e.target.value) !== 0) && Number(e.target.value) > 0) {
@@ -613,7 +686,12 @@ const AddQuestion = (props) => {
                                     value={wrongMarks}
                                     ref={wrongMarkRef}
                                     onChange={(e) => {
-                                        setWrongMarks(Number(e.target.value))
+                                        //for getting only number input from user
+                                        const re = /^[0-9\b]+$/;
+                                        if (e.target.value === '' || re.test(e.target.value)) {
+                                            setWrongMarks(e.target.value)
+                                        }
+
                                         let newError = {}
                                         //error code
                                         if (Number(e.target.value) === '' || Number(e.target.value) < 0) {
@@ -650,11 +728,13 @@ const AddQuestion = (props) => {
                                 <br />
                                 {richTextEditor ?
                                     <div
+                                        className="question-richText"
                                         ref={questionText}
                                     >
                                         <RichTextEditor
                                             data={questionText.current ? questionText.current.value : '<p></p>'}
                                             onChange={checkQuestionRichTextEditor}
+                                            className="question-richText"
                                         />
 
                                         <div className="form-text text-danger">
@@ -667,24 +747,27 @@ const AddQuestion = (props) => {
                                         <textarea
                                             className="form-control"
                                             placeholder="Question"
-                                            style={error ? (error.questionText ? {
+                                            style={error ? (error.textError ? {
                                                 outline: "1px red solid",
                                                 height: "200px", border: "1px solid red"
                                             } : { height: "200px" }) : { height: "200px" }}
                                             name="questionText"
                                             defaultValue={questionTexts}
                                             onChange={(e) => checkError(e.target.value)}
+                                            onBlur={(e) => checkError(e.target.value)}
                                             ref={questionText}
                                         >
                                         </textarea>
+
                                         <label className="form-label text-dark">Question</label>
                                     </div>
                                 }
                                 <div
-                                    className="form-text point"
+                                    className="form-text point d-inline-block"
                                     onClick={() => {
                                         if (refernce != null) {
-                                            let text = refernce.makeUnprivilegedEditor(refernce.getEditor())
+                                            let text = refernce.makeUnprivilegedEditor(refernce.getEditor());
+                                            checkError(text.getText());
                                             setQuestionTexts(text.getText());
                                         }
                                         setRefernce(null);

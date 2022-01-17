@@ -3,7 +3,13 @@ import RichTextEditorOption from '../RichTextEditor/RichTextEditorOption';
 
 
 const Option = (props) => {
-    let { id, optionNumber, type, remove, changeOptionData, changeOptionText, changerichTextEditor, data, errorText } = props
+    let { id, optionNumber, type, remove, changeOptionData, changeOptionText, changerichTextEditor, changeRichOptionText, data, errorText } = props
+
+    const ChangeOptionText = (refs, value) => {
+        changeRichOptionText(value, optionNumber);
+    }
+
+
 
     return (
         <div className="col-12 my-2">
@@ -30,15 +36,14 @@ const Option = (props) => {
                             </span>
                         </span>
                     </div>
-                    <RichTextEditorOption
-                        id={id}
-                        minHeight="60px"
-                        name="option"
-                        text={data !== 'undefined' ? data.option : ''}
-                        onChange={(e) => {
-                            changeOptionText(e, id, optionNumber);
-                        }}
-                    />
+                    <div className="option-richTex">
+                        <RichTextEditorOption
+                            id={id}
+                            data={data !== 'undefined' ? data.option : ''}
+                            changeRichOptionText={ChangeOptionText}
+                            className="option-richText"
+                        />
+                    </div>
                 </>
                 :
                 <div className="input-group">
@@ -67,12 +72,13 @@ const Option = (props) => {
                         name="option"
                         defaultValue={data !== 'undefined' ? data.option : ''}
                         onChange={(e) => {
-                            changeOptionText(e, id, optionNumber);
+                            changeOptionText(e, id, optionNumber, 'ta');
                         }}
                     ></textarea>
                 </div>
             }
-            <div className="point">
+            
+            <div className="point d-inline-block">
                 <span
                     className="form-text"
                     onClick={() => remove(id)}

@@ -14,6 +14,11 @@ body {
         supported by Chrome, Edge, Opera and Firefox */
 }
 
+.form-check-input:checked {
+    background-color: #838383;
+    border-color: #838383;
+}
+
 
 .hide {
     display: none;

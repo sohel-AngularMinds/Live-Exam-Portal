@@ -8,32 +8,35 @@ import { useRef, useEffect } from 'react'
 //-----------function start working from here
 
 function RichTextEditorOption(props) {
-  console.log(props);
-  let { data, onChange } = props;
+  
+  
+  let { data, changeRichOptionText } = props;
   let reactQuilRef = useRef(null);
 
   
-  function attachQuillRefs() {
-    onChange(reactQuilRef);
+  function attachQuillRefs(text) {
+    changeRichOptionText(reactQuilRef,text);
   }
   
   useEffect(() => {
-    attachQuillRefs();
+    attachQuillRefs(`${data}`);
   }, [])
 
+
   return (    
-    <div>      
+    <div className="option-richText">      
       <ReactQuill
         theme={'snow'}
         defaultValue={data}
         ref={(el) => {
           reactQuilRef = el
         }}
+        className="option-richText"
         
         placeholder="insert text here..."
         modules={RichTextEditorOption.modules}
         formats={RichTextEditorOption.formats}
-        onChange={()=>attachQuillRefs()}
+        onChange={(value)=>attachQuillRefs(value)}
       />
     </div>
   )

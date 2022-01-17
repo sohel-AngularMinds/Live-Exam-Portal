@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify';
 import Option from '../Option/Option';
 import { GrowingSpinner } from '../Placeholder/Loading';
+import RichTextEditor from '../RichTextEditor/RichTextEditor';
 import { questionsAPI, subjectAPI, putQuestion } from '../Service/Service'
 import { finalValidation } from '../Validation/Validate';
 
@@ -26,6 +27,9 @@ const EditQuestion = (props) => {
     //for fullscreen mode
     const [fullScreen, setFullScreen] = useState(() => false);
     const [iconChange, setIconChange] = useState(() => false);
+
+    //------- rich text editor reference
+    const [refernce, setRefernce] = useState(() => null);
 
 
 
@@ -53,6 +57,11 @@ const EditQuestion = (props) => {
     //------ for wrong mark
     const [wrongMarks, setWrongMarks] = useState(() => 0);
 
+
+    //------ for question text
+    const [questionTexts, setQuestionTexts] = useState('');
+
+
     //------ for question text
     const questionText = useRef();
 
@@ -62,6 +71,9 @@ const EditQuestion = (props) => {
     const [showOptionList, setShowOptionList] = useState(() => null);
 
     const [defaultValues, setDefaultValues] = useState(() => null);
+
+    // for reach text editor of question text field
+    const [richTextEditor, setRichTextEditor] = useState(false);
 
     //typeRef
     const subjectRef = useRef();
@@ -142,6 +154,62 @@ const EditQuestion = (props) => {
         }
     }
 
+    const changerichTextEditor = (key, value) => {
+
+        let temp = optionData.map((one) => {
+            if (one._id === key) {
+                one.richTextEditor = !value;
+            }
+            return one
+        })
+        setOptionData(temp);
+    }
+
+    const changeRichOptionText = (value, index) => {
+        let temp = optionData.slice();
+        if (value === '<p><br></p>')
+            value = '';
+
+        temp[index] = { ...temp[index], option: value };
+        setOptionData(temp);
+
+
+        let newError = {}
+
+        //------- for error checking code
+        let optionErr = temp.map((one) => {
+            if (one.option === '' || one.option == null || one.option === '\n' || one.option === '<p><br/></p>') {
+                return 'option is required'
+            }
+            return '';
+        })
+
+        let found = false;
+        // check same or not
+        for (let i = 0; i < temp.length - 1; i++) {
+            for (let j = i + 1; j < temp.length; j++) {
+                if (temp[i].option === temp[j].option) {
+                    found = true;
+                }
+            }
+        }
+
+        if (found) {
+            newError = { ...errorBackup, sameElement: 'Duplicate options are not allowed.' };
+            found = false;
+        }
+        else {
+            newError = { ...errorBackup, sameElement: '' };
+        }
+
+        errorBackup = newError;
+        newError = { ...errorBackup, optionErrorArray: optionErr };
+        setOptionError(optionErr);
+        setError(newError);
+        errorBackup = newError;
+    }
+
+
     const changeOptionText = (e, id, index) => {
         let temp = optionData.slice();
         temp[index] = { ...temp[index], option: e.target.value }
@@ -198,12 +266,14 @@ const EditQuestion = (props) => {
 
     const onUpdate = (e) => {
         e.preventDefault();
+
+        let temp = richTextEditor ? refernce.makeUnprivilegedEditor(refernce.getEditor()) : '';
         let obj = {
             diffLevel: diffLevel,
             options: optionData.map(one => {
                 return { option: one.option, isCorrect: one.isCorrect, richTextEditor: one.richTextEditor }
             }),
-            questionText: questionText.current.value,
+            questionText: richTextEditor ? (temp.getText() !== '\n' ? temp.getHTML() : '\n') : questionText.current.value,
             rightMarks,
             wrongMarks,
             type: questionType,
@@ -229,7 +299,7 @@ const EditQuestion = (props) => {
                 delete newError.optionErrorArray
         }
 
-        
+
         if (Object.keys(newError).length > 0) {
             setError(newError)
             //for focus
@@ -286,9 +356,24 @@ const EditQuestion = (props) => {
     /*****************************************--Checking Error--********************************************/
 
     //questionText
-    const checkError = (e) => {
+    const checkError = (value) => {
+        setQuestionTexts(value);
         let newError;
-        if (e.target.value === "" || e.target.value == null) {
+        if (value === "" || value == null || value === '\n') {
+            newError = { ...error, questionText: "Don't let it empty it is mandatory", textError: true }
+        }
+        else {
+            newError = { ...error, questionText: null, textError: false }
+        }
+        errorBackup = newError;
+        setError(newError);
+    }
+
+
+    const checkQuestionRichTextEditor = (refernceOfRichText, text) => {
+        setRefernce(refernceOfRichText);
+        let newError;
+        if (text === "" || text == null || text === "<p><br></p>" || text === '\n') {
             newError = { ...error, questionText: "Don't let it empty it is mandatory" }
         }
         else {
@@ -302,7 +387,6 @@ const EditQuestion = (props) => {
     useEffect(() => {
         try {
             let url = `/questions/${id}`
-
 
             async function get() {
 
@@ -326,7 +410,36 @@ const EditQuestion = (props) => {
                     setRightMarks(res.rightMarks);
                     setWrongMarks(res.wrongMarks);
                     setSubjectId(res.subject._id);
-                    setOptionData(res.options);
+                    setQuestionTexts(res.questionText);
+
+                    if (res.questionText.includes('<h1>') || res.questionText.includes('<strong>')
+                        || res.questionText.includes('<em>') || res.questionText.includes('<u>')
+                        || res.questionText.includes('<blockquote>') || res.questionText.includes('<span')
+                        || res.questionText.includes('<ol>') || res.questionText.includes('<ul>')
+                        || res.questionText.includes('<pre')
+                    ) {
+                        setRichTextEditor(true)
+                    }   
+
+                    let temp = res.options.map((data) => {
+                        if (data.option.includes('<h1>') || data.option.includes('<strong>')
+                            || data.option.includes('<em>') || data.option.includes('<u>')
+                            || data.option.includes('<blockquote>') || data.option.includes('<span')
+                            || data.option.includes('<ol>') || data.option.includes('<ul>')
+                            || data.option.includes('<pre')
+                        ) {
+                            return {
+                                ...data, richTextEditor: true
+                            }
+                        }
+                        else {
+                            return {
+                                ...data, richTextEditor: false
+                            }
+                        }
+                    })
+
+                    setOptionData(temp);
                     setTopicId(res.topic._id);
                 }
                 setLoading(false);
@@ -387,6 +500,9 @@ const EditQuestion = (props) => {
                         remove={remove}
                         changeOptionData={changeOptionData}
                         changeOptionText={changeOptionText}
+                        //for rich text editor
+                        changerichTextEditor={changerichTextEditor}
+                        changeRichOptionText={changeRichOptionText}
                         errorText={optionError[index]}
                     />
                 )
@@ -398,8 +514,8 @@ const EditQuestion = (props) => {
     }, [optionData, questionType])
 
     //////////
-     //for render list when it add one element or remove element from it
-     useEffect(() => {
+    //for render list when it add one element or remove element from it
+    useEffect(() => {
         if (optionList != null) {
             setShowOptionList(optionList);
         }
@@ -531,7 +647,11 @@ const EditQuestion = (props) => {
                                                 value={rightMarks}
                                                 ref={rightMarkRef}
                                                 onChange={(e) => {
-                                                    setRightMarks(Number(e.target.value))
+                                                    //for getting only number input from user
+                                                    const re = /^[0-9\b]+$/;
+                                                    if (e.target.value === '' || re.test(e.target.value)) {
+                                                        setRightMarks(e.target.value)
+                                                    }
                                                     //error checking code
                                                     let newError = {}
                                                     if ((Number(e.target.value) !== '' || Number(e.target.value) !== 0) && Number(e.target.value) > 0) {
@@ -561,8 +681,35 @@ const EditQuestion = (props) => {
                                                 className="form-control"
                                                 value={wrongMarks}
                                                 ref={wrongMarkRef}
+
+
                                                 onChange={(e) => {
-                                                    setWrongMarks(Number(e.target.value))
+                                                    //for getting only number input from user
+                                                    const re = /^[0-9\b]+$/;
+                                                    if (e.target.value === '' || re.test(e.target.value)) {
+                                                        setWrongMarks(e.target.value)
+                                                    }
+                                                    let newError = {}
+                                                    //error code
+                                                    if (Number(e.target.value) === '' || Number(e.target.value) < 0) {
+                                                        newError = { ...errorBackup, wrongMark: "please provide proper Mark" }
+                                                        errorBackup = newError;
+                                                    }
+                                                    else {
+                                                        newError = { ...errorBackup, wrongMark: null }
+                                                        errorBackup = newError;
+                                                        // errorBackup = newError;
+
+                                                        if (Number(e.target.value) >= rightMarkRef.current.value) {
+                                                            newError = { ...errorBackup, rightMark: "right mark always greater than wrong mark" }
+                                                        }
+                                                        else {
+                                                            newError = { ...errorBackup, rightMark: null }
+
+                                                        }
+                                                        errorBackup = newError;
+                                                        setError(errorBackup);
+                                                    }
                                                 }}
 
                                             />
@@ -572,24 +719,59 @@ const EditQuestion = (props) => {
                                         </div>
                                     </div>
 
+
+
+
                                     <div className="row">
-                                        <div className="col-12 mb-3">
+                                        <div className="form-group col-12 mb-3">
                                             <label className="form-label">Question</label>
-                                            <div className="form-floating">
-                                                <textarea
-                                                    className="form-control"
-                                                    placeholder="Question"
-                                                    defaultValue={defaultValues.questionText}
-                                                    style={error ? (error.questionText ? {
-                                                        outline: "1px red solid",
-                                                        height: "150px", border: "1px solid red"
-                                                    } : { height: "150px" }) : { height: "150px" }}
-                                                    name="questionText"
-                                                    onChange={checkError}
+                                            <br />
+                                            {richTextEditor ?
+                                                <div
                                                     ref={questionText}
-                                                ></textarea>
-                                                <label className="form-label text-dark">Question</label>
-                                                <div className="form-text point">Enable Rich Text Editor</div>
+                                                >
+                                                    <RichTextEditor
+                                                        data={questionTexts}
+                                                        onChange={checkQuestionRichTextEditor}
+                                                    />
+
+                                                    <div className="form-text text-danger">
+                                                        {error ? error.questionText : <div>&nbsp;&nbsp;<br /></div>}
+                                                    </div>
+
+                                                </div>
+                                                :
+                                                <div className="form-floating">
+                                                    <textarea
+                                                        className="form-control"
+                                                        placeholder="Question"
+                                                        style={error ? (error.textError ? {
+                                                            outline: "1px red solid",
+                                                            height: "200px", border: "1px solid red"
+                                                        } : { height: "200px" }) : { height: "200px" }}
+                                                        name="questionText"
+                                                        defaultValue={questionTexts}
+                                                        onChange={(e) => checkError(e.target.value)}
+                                                        onBlur={(e) => checkError(e.target.value)}
+                                                        ref={questionText}
+                                                    >
+                                                    </textarea>
+
+                                                    <label className="form-label text-dark">Question</label>
+                                                </div>
+                                            }
+                                            <div
+                                                className="form-text point d-inline-block"
+                                                onClick={() => {
+                                                    if (refernce != null) {
+                                                        let text = refernce.makeUnprivilegedEditor(refernce.getEditor());
+                                                        checkError(text.getText());
+                                                        setQuestionTexts(text.getText());
+                                                    }
+                                                    setRefernce(null);
+                                                    setRichTextEditor(prev => prev = !prev)
+                                                }} >
+                                                {richTextEditor ? "Disable" : "Enable "}  Rich Text Editor
                                             </div>
                                         </div>
                                     </div>
@@ -641,7 +823,7 @@ const EditQuestion = (props) => {
                                     <button
                                         type="button"
                                         className="btn mx-2"
-                                        onClick={()=>navigate(-1)}
+                                        onClick={() => navigate(-1)}
                                     > Cancel </button>
                                 </div>
                             </div>
